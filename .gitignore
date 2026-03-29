@@ -1,0 +1,14 @@
+# ═══ Backend ═══
+backend/.env
+backend/uploads/
+backend/go.sum
+
+# ═══ Frontend ═══
+frontend/node_modules/
+frontend/dist/
+frontend/.nx/cache/
+
+# ═══ General ═══
+*.log
+.DS_Store
+Thumbs.db

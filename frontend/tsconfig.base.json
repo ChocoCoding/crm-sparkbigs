@@ -1,0 +1,26 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "rootDir": ".",
+    "sourceMap": true,
+    "declaration": false,
+    "moduleResolution": "node",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "target": "es2015",
+    "module": "esnext",
+    "lib": ["es2020", "dom"],
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@miapp/data-access": ["libs/data-access/src/index.ts"],
+      "@miapp/i18n": ["libs/i18n/src/index.ts"],
+      "@miapp/features/login": ["libs/features/login/src/index.ts"],
+      "@miapp/features/home-dashboard": ["libs/features/home-dashboard/src/index.ts"],
+      "@miapp/features/admin-panel": ["libs/features/admin-panel/src/index.ts"]
+    }
+  },
+  "exclude": ["node_modules", "tmp"]
+}

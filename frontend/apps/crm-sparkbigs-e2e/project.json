@@ -1,0 +1,9 @@
+{
+  "name": "crm-sparkbigs-e2e",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/crm-sparkbigs-e2e/src",
+  "implicitDependencies": ["crm-sparkbigs"],
+  "// targets": "to see all targets run: nx show project crm-sparkbigs-e2e --web",
+  "targets": {}
+}
