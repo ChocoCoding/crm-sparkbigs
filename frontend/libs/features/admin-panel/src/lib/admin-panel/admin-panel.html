@@ -1,1 +1,122 @@
-<p>AdminPanel works!</p>
+<div class="flex min-h-screen bg-gray-50">
+  <app-sidebar />
+
+  <main class="flex-1 p-8 overflow-auto">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-8">
+      <h1 class="text-2xl font-bold text-gray-900">
+        {{ 'ADMIN.TITLE' | translate }}
+      </h1>
+      <span class="text-sm text-gray-500">
+        {{ 'COMMON.TOTAL' | translate }}: {{ total() }}
+      </span>
+    </div>
+
+    <!-- Feedback -->
+    @if (error()) {
+      <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+        {{ error() }}
+      </div>
+    }
+    @if (successMsg()) {
+      <div class="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700">
+        {{ successMsg() }}
+      </div>
+    }
+
+    <!-- Tabla de usuarios -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+      <div class="px-6 py-4 border-b border-gray-100">
+        <h2 class="text-base font-semibold text-gray-800">
+          {{ 'ADMIN.USERS' | translate }}
+        </h2>
+      </div>
+
+      @if (loading()) {
+        <div class="p-6 space-y-3">
+          @for (_ of [1,2,3,4,5]; track $index) {
+            <div class="h-12 bg-gray-100 rounded animate-pulse"></div>
+          }
+        </div>
+      } @else if (users().length === 0) {
+        <p class="p-6 text-sm text-gray-400 text-center">
+          {{ 'COMMON.NO_RESULTS' | translate }}
+        </p>
+      } @else {
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="bg-gray-50 text-gray-500 uppercase text-xs">
+              <tr>
+                <th class="px-6 py-3 text-left font-medium">{{ 'CONTACTS.NAME' | translate }}</th>
+                <th class="px-6 py-3 text-left font-medium">{{ 'AUTH.EMAIL' | translate }}</th>
+                <th class="px-6 py-3 text-left font-medium">{{ 'ADMIN.ROLE' | translate }}</th>
+                <th class="px-6 py-3 text-left font-medium">{{ 'ADMIN.LICENSE' | translate }}</th>
+                <th class="px-6 py-3 text-left font-medium">{{ 'ADMIN.IS_ACTIVE' | translate }}</th>
+                <th class="px-6 py-3"></th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+              @for (user of users(); track user.id) {
+                <tr class="hover:bg-gray-50 transition-colors">
+                  <!-- Nombre -->
+                  <td class="px-6 py-3 font-medium text-gray-900">{{ user.name }}</td>
+
+                  <!-- Email -->
+                  <td class="px-6 py-3 text-gray-500">{{ user.email }}</td>
+
+                  <!-- Rol -->
+                  <td class="px-6 py-3">
+                    <span class="px-2 py-1 rounded-full text-xs font-medium"
+                          [class]="roleBadgeClass(user.role)">
+                      {{ 'ADMIN.ROLE_' + user.role.toUpperCase() | translate }}
+                    </span>
+                  </td>
+
+                  <!-- Licencia -->
+                  <td class="px-6 py-3">
+                    @if (user.license) {
+                      <span class="px-2 py-1 rounded-full text-xs font-medium"
+                            [class]="planBadgeClass(user.license.plan)">
+                        {{ 'ADMIN.PLAN_' + user.license.plan.toUpperCase() | translate }}
+                      </span>
+                    } @else {
+                      <span class="text-gray-400">—</span>
+                    }
+                  </td>
+
+                  <!-- Activo -->
+                  <td class="px-6 py-3">
+                    @if (user.is_active) {
+                      <span class="inline-flex items-center gap-1 text-green-600 text-xs font-medium">
+                        <span class="w-2 h-2 rounded-full bg-green-500 inline-block"></span>
+                        Sí
+                      </span>
+                    } @else {
+                      <span class="inline-flex items-center gap-1 text-gray-400 text-xs font-medium">
+                        <span class="w-2 h-2 rounded-full bg-gray-300 inline-block"></span>
+                        No
+                      </span>
+                    }
+                  </td>
+
+                  <!-- Acción -->
+                  <td class="px-6 py-3 text-right">
+                    @if (user.is_active) {
+                      <button
+                        (click)="deactivateUser(user.id)"
+                        class="text-xs text-red-600 hover:text-red-800 font-medium transition-colors">
+                        {{ 'ADMIN.DEACTIVATE' | translate }}
+                      </button>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+
+  </main>
+</div>

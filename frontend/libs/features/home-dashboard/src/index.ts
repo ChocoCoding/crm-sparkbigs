@@ -1,1 +1,1 @@
-export * from './lib/home-dashboard/home-dashboard';
+export { HomeDashboardComponent } from './lib/home-dashboard/home-dashboard';

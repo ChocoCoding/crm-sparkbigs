@@ -1,1 +1,1 @@
-export * from './lib/login/login';
+export { LoginComponent } from './lib/login/login';

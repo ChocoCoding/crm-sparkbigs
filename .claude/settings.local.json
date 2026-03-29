@@ -2,7 +2,11 @@
   "permissions": {
     "allow": [
       "Bash(go get:*)",
-      "Bash(npx create-nx-workspace@22 frontend --preset=angular-standalone --appName=crm-sparkbigs --style=css --nxCloud=skip --no-interactive)"
+      "Bash(npx create-nx-workspace@22 frontend --preset=angular-standalone --appName=crm-sparkbigs --style=css --nxCloud=skip --no-interactive)",
+      "Bash(go build:*)",
+      "Bash(go mod:*)",
+      "Bash(go test:*)",
+      "Bash(npx nx:*)"
     ]
   }
 }

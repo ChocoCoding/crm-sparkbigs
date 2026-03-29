@@ -1,1 +1,1 @@
-export * from './lib/admin-panel/admin-panel';
+export { AdminPanelComponent } from './lib/admin-panel/admin-panel';
