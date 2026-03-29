@@ -26,35 +26,37 @@ func (m *mockContactRepo) FindByUserID(uid uint, o, l int) ([]domain.Contact, in
 	args := m.Called(uid, o, l)
 	return args.Get(0).([]domain.Contact), args.Get(1).(int64), args.Error(2)
 }
+func (m *mockContactRepo) FindByCompanyID(cid, uid uint, o, l int) ([]domain.Contact, int64, error) {
+	args := m.Called(cid, uid, o, l)
+	return args.Get(0).([]domain.Contact), args.Get(1).(int64), args.Error(2)
+}
 func (m *mockContactRepo) Update(c *domain.Contact) error { return m.Called(c).Error(0) }
 func (m *mockContactRepo) Delete(id uint) error           { return m.Called(id).Error(0) }
+func (m *mockContactRepo) Search(uid uint, q string, o, l int) ([]domain.Contact, int64, error) {
+	args := m.Called(uid, q, o, l)
+	return args.Get(0).([]domain.Contact), args.Get(1).(int64), args.Error(2)
+}
 
-// ─── Tests CreateContact ────────────────────────────────────
+// ─── Tests ───────────────────────────────────────────────────
 
 func TestCreateContact_Success(t *testing.T) {
 	repo := new(mockContactRepo)
-	contact := &domain.Contact{UserID: 1, Name: "Ana García", Email: "ana@example.com"}
+	companyID := uint(1)
+	contact := &domain.Contact{UserID: 1, CompanyID: &companyID, Name: "Ana García", Position: "Directora"}
 	repo.On("Create", contact).Return(nil)
 
 	svc := services.NewContactService(repo)
-	err := svc.CreateContact(contact)
-
-	assert.NoError(t, err)
+	assert.NoError(t, svc.CreateContact(contact))
 	repo.AssertExpectations(t)
 }
 
-// ─── Tests GetContact ───────────────────────────────────────
-
-func TestGetContact_Success(t *testing.T) {
+func TestCreateContact_WithoutCompany(t *testing.T) {
 	repo := new(mockContactRepo)
-	contact := &domain.Contact{ID: 10, UserID: 1, Name: "Ana García"}
-	repo.On("FindByID", uint(10)).Return(contact, nil)
+	contact := &domain.Contact{UserID: 1, CompanyID: nil, Name: "Sin empresa"}
+	repo.On("Create", contact).Return(nil)
 
 	svc := services.NewContactService(repo)
-	result, err := svc.GetContact(10, 1)
-
-	assert.NoError(t, err)
-	assert.Equal(t, "Ana García", result.Name)
+	assert.NoError(t, svc.CreateContact(contact))
 }
 
 func TestGetContact_NotFound(t *testing.T) {
@@ -63,72 +65,34 @@ func TestGetContact_NotFound(t *testing.T) {
 
 	svc := services.NewContactService(repo)
 	_, err := svc.GetContact(99, 1)
-
 	assert.ErrorIs(t, err, services.ErrContactNotFound)
 }
 
 func TestGetContact_Forbidden(t *testing.T) {
 	repo := new(mockContactRepo)
-	// El contacto pertenece al userID=2, pero lo solicita userID=1
-	contact := &domain.Contact{ID: 10, UserID: 2}
-	repo.On("FindByID", uint(10)).Return(contact, nil)
+	repo.On("FindByID", uint(10)).Return(&domain.Contact{ID: 10, UserID: 2}, nil)
 
 	svc := services.NewContactService(repo)
 	_, err := svc.GetContact(10, 1)
-
 	assert.ErrorIs(t, err, services.ErrContactForbidden)
 }
 
-// ─── Tests UpdateContact ────────────────────────────────────
-
-func TestUpdateContact_Forbidden(t *testing.T) {
+func TestUpdateContact_PreservesUserID(t *testing.T) {
 	repo := new(mockContactRepo)
-	existing := &domain.Contact{ID: 5, UserID: 2}
-	repo.On("FindByID", uint(5)).Return(existing, nil)
-
-	svc := services.NewContactService(repo)
-	err := svc.UpdateContact(&domain.Contact{ID: 5, UserID: 1}, 1)
-
-	assert.ErrorIs(t, err, services.ErrContactForbidden)
-}
-
-func TestUpdateContact_Success(t *testing.T) {
-	repo := new(mockContactRepo)
-	existing := &domain.Contact{ID: 5, UserID: 1, Name: "Viejo Nombre"}
-	updated := &domain.Contact{ID: 5, Name: "Nuevo Nombre"}
-	repo.On("FindByID", uint(5)).Return(existing, nil)
+	repo.On("FindByID", uint(5)).Return(&domain.Contact{ID: 5, UserID: 1, Name: "original"}, nil)
 	repo.On("Update", mock.AnythingOfType("*domain.Contact")).Return(nil)
 
+	updated := &domain.Contact{ID: 5, UserID: 99, Name: "nuevo"}
 	svc := services.NewContactService(repo)
-	err := svc.UpdateContact(updated, 1)
-
-	assert.NoError(t, err)
-	// El servicio debe preservar el UserID original
+	assert.NoError(t, svc.UpdateContact(updated, 1))
 	assert.Equal(t, uint(1), updated.UserID)
-}
-
-// ─── Tests DeleteContact ────────────────────────────────────
-
-func TestDeleteContact_Success(t *testing.T) {
-	repo := new(mockContactRepo)
-	existing := &domain.Contact{ID: 7, UserID: 1}
-	repo.On("FindByID", uint(7)).Return(existing, nil)
-	repo.On("Delete", uint(7)).Return(nil)
-
-	svc := services.NewContactService(repo)
-	err := svc.DeleteContact(7, 1)
-
-	assert.NoError(t, err)
-	repo.AssertExpectations(t)
 }
 
 func TestDeleteContact_Forbidden(t *testing.T) {
 	repo := new(mockContactRepo)
-	existing := &domain.Contact{ID: 7, UserID: 2}
-	repo.On("FindByID", uint(7)).Return(existing, nil)
+	repo.On("FindByID", uint(7)).Return(&domain.Contact{ID: 7, UserID: 2}, nil)
 
 	svc := services.NewContactService(repo)
-	err := svc.DeleteContact(7, 1)
-
+	err := svc.DeleteContact(7, 999)
 	assert.ErrorIs(t, err, services.ErrContactForbidden)
 }

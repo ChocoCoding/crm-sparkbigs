@@ -38,8 +38,20 @@ type ContactRepository interface {
 	Create(contact *domain.Contact) error
 	FindByID(id uint) (*domain.Contact, error)
 	FindByUserID(userID uint, offset, limit int) ([]domain.Contact, int64, error)
+	FindByCompanyID(companyID, userID uint, offset, limit int) ([]domain.Contact, int64, error)
 	Update(contact *domain.Contact) error
 	Delete(id uint) error
+	Search(userID uint, query string, offset, limit int) ([]domain.Contact, int64, error)
+}
+
+// CompanyRepository define las operaciones de persistencia para Company.
+type CompanyRepository interface {
+	Create(company *domain.Company) error
+	FindByID(id uint) (*domain.Company, error)
+	FindByUserID(userID uint, offset, limit int) ([]domain.Company, int64, error)
+	Update(company *domain.Company) error
+	Delete(id uint) error
+	Search(userID uint, query string, offset, limit int) ([]domain.Company, int64, error)
 }
 
 // DealRepository define las operaciones de persistencia para Deal.
@@ -49,5 +61,36 @@ type DealRepository interface {
 	FindByUserID(userID uint, offset, limit int) ([]domain.Deal, int64, error)
 	FindByContactID(contactID uint) ([]domain.Deal, error)
 	Update(deal *domain.Deal) error
+	Delete(id uint) error
+}
+
+// MeetingRepository define las operaciones de persistencia para Meeting.
+type MeetingRepository interface {
+	Create(meeting *domain.Meeting) error
+	FindByID(id uint) (*domain.Meeting, error)
+	FindByUserID(userID uint, offset, limit int) ([]domain.Meeting, int64, error)
+	FindUpcoming(userID uint, limit int) ([]domain.Meeting, error)
+	FindByCompanyID(companyID, userID uint) ([]domain.Meeting, error)
+	Update(meeting *domain.Meeting) error
+	Delete(id uint) error
+}
+
+// SubscriptionRepository define las operaciones de persistencia para Subscription.
+type SubscriptionRepository interface {
+	Create(sub *domain.Subscription) error
+	FindByID(id uint) (*domain.Subscription, error)
+	FindByUserID(userID uint, offset, limit int) ([]domain.Subscription, int64, error)
+	FindByCompanyID(companyID, userID uint) ([]domain.Subscription, error)
+	FindExpiringSoon(userID uint, days int) ([]domain.Subscription, error)
+	Update(sub *domain.Subscription) error
+	Delete(id uint) error
+}
+
+// SettingRepository define las operaciones de persistencia para Setting.
+type SettingRepository interface {
+	Upsert(setting *domain.Setting) error
+	FindByUserID(userID uint) ([]domain.Setting, error)
+	FindByCategory(userID uint, category string) ([]domain.Setting, error)
+	FindByKey(userID uint, key string) (*domain.Setting, error)
 	Delete(id uint) error
 }

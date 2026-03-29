@@ -4,15 +4,13 @@ import { Observable } from 'rxjs';
 import { environment } from './environment';
 import { ApiResponse, Contact, PaginatedData } from './models';
 
-export interface CreateContactPayload {
+export interface ContactPayload {
   name: string;
   email?: string;
   phone?: string;
-  company?: string;
-}
-
-export interface UpdateContactPayload extends CreateContactPayload {
+  position?: string;
   status?: Contact['status'];
+  company_id?: number | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -20,41 +18,26 @@ export class ContactService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = `${environment.apiUrl}/contacts`;
 
-  getAll(
-    offset = 0,
-    limit = 20
-  ): Observable<ApiResponse<PaginatedData<Contact>>> {
-    const params = new HttpParams()
-      .set('offset', offset)
-      .set('limit', limit);
-    return this.http.get<ApiResponse<PaginatedData<Contact>>>(this.apiUrl, {
-      params,
-    });
+  getAll(offset = 0, limit = 20): Observable<ApiResponse<PaginatedData<Contact>>> {
+    const params = new HttpParams().set('offset', offset).set('limit', limit);
+    return this.http.get<ApiResponse<PaginatedData<Contact>>>(this.apiUrl, { params });
+  }
+
+  search(query: string, offset = 0, limit = 20): Observable<ApiResponse<PaginatedData<Contact>>> {
+    const params = new HttpParams().set('q', query).set('offset', offset).set('limit', limit);
+    return this.http.get<ApiResponse<PaginatedData<Contact>>>(`${this.apiUrl}/search`, { params });
   }
 
   getById(id: number): Observable<ApiResponse<{ contact: Contact }>> {
-    return this.http.get<ApiResponse<{ contact: Contact }>>(
-      `${this.apiUrl}/${id}`
-    );
+    return this.http.get<ApiResponse<{ contact: Contact }>>(`${this.apiUrl}/${id}`);
   }
 
-  create(
-    payload: CreateContactPayload
-  ): Observable<ApiResponse<{ contact: Contact }>> {
-    return this.http.post<ApiResponse<{ contact: Contact }>>(
-      this.apiUrl,
-      payload
-    );
+  create(payload: ContactPayload): Observable<ApiResponse<{ contact: Contact }>> {
+    return this.http.post<ApiResponse<{ contact: Contact }>>(this.apiUrl, payload);
   }
 
-  update(
-    id: number,
-    payload: UpdateContactPayload
-  ): Observable<ApiResponse<{ contact: Contact }>> {
-    return this.http.put<ApiResponse<{ contact: Contact }>>(
-      `${this.apiUrl}/${id}`,
-      payload
-    );
+  update(id: number, payload: ContactPayload): Observable<ApiResponse<{ contact: Contact }>> {
+    return this.http.put<ApiResponse<{ contact: Contact }>>(`${this.apiUrl}/${id}`, payload);
   }
 
   delete(id: number): Observable<ApiResponse<unknown>> {

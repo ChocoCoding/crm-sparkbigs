@@ -1,0 +1,335 @@
+<div class="flex min-h-screen bg-gray-50">
+  <app-sidebar />
+
+  <main class="flex-1 p-8 overflow-auto">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900">Contactos</h1>
+        <p class="text-sm text-gray-500 mt-1">Gestiona tus contactos y sus empresas</p>
+      </div>
+      <button
+        (click)="openModal()"
+        class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white rounded-lg transition-colors"
+        style="background:#1A237E;"
+      >
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+          <path d="M12 4v16m8-8H4"/>
+        </svg>
+        Nuevo Contacto
+      </button>
+    </div>
+
+    <!-- Banners -->
+    @if (errorMsg()) {
+      <div class="mb-4 flex items-center gap-2 px-4 py-3 rounded-lg text-sm" style="background:#fff1f2;border:1px solid #fecdd3;color:#be123c;">
+        <svg width="15" height="15" fill="currentColor" viewBox="0 0 20 20" style="flex-shrink:0;">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+        </svg>
+        {{ errorMsg() }}
+      </div>
+    }
+    @if (successMsg()) {
+      <div class="mb-4 flex items-center gap-2 px-4 py-3 rounded-lg text-sm" style="background:#f0fdf4;border:1px solid #bbf7d0;color:#15803d;">
+        <svg width="15" height="15" fill="currentColor" viewBox="0 0 20 20" style="flex-shrink:0;">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+        </svg>
+        {{ successMsg() }}
+      </div>
+    }
+
+    <!-- Búsqueda -->
+    <div class="mb-4">
+      <div style="position:relative;max-width:380px;">
+        <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#9ca3af;display:flex;">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/>
+          </svg>
+        </span>
+        <input
+          type="text"
+          placeholder="Buscar por nombre, email o cargo..."
+          [value]="searchQuery()"
+          (input)="onSearch($event)"
+          style="width:100%;padding:8px 14px 8px 36px;font-size:0.875rem;border:1.5px solid #e5e7eb;border-radius:10px;outline:none;background:white;box-sizing:border-box;"
+          (focus)="$any($event.target).style.borderColor='#00CED1'"
+          (blur)="$any($event.target).style.borderColor='#e5e7eb'"
+        />
+      </div>
+    </div>
+
+    <!-- Tabla -->
+    <div class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm">
+      <table style="width:100%;font-size:0.875rem;border-collapse:collapse;">
+        <thead>
+          <tr style="background:#f9fafb;border-bottom:1px solid #e5e7eb;">
+            <th style="text-align:left;padding:12px 24px;font-weight:600;color:#4b5563;">Contacto</th>
+            <th style="text-align:left;padding:12px 24px;font-weight:600;color:#4b5563;">Empresa</th>
+            <th style="text-align:left;padding:12px 24px;font-weight:600;color:#4b5563;">Cargo</th>
+            <th style="text-align:left;padding:12px 24px;font-weight:600;color:#4b5563;">Teléfono</th>
+            <th style="text-align:left;padding:12px 24px;font-weight:600;color:#4b5563;">Estado</th>
+            <th style="padding:12px 24px;"></th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <!-- Skeleton -->
+          @if (loading()) {
+            @for (i of [1,2,3,4,5]; track i) {
+              <tr class="animate-pulse" style="border-bottom:1px solid #f3f4f6;">
+                <td style="padding:16px 24px;"><div style="height:14px;background:#e5e7eb;border-radius:6px;width:140px;"></div></td>
+                <td style="padding:16px 24px;"><div style="height:14px;background:#e5e7eb;border-radius:6px;width:100px;"></div></td>
+                <td style="padding:16px 24px;"><div style="height:14px;background:#e5e7eb;border-radius:6px;width:90px;"></div></td>
+                <td style="padding:16px 24px;"><div style="height:14px;background:#e5e7eb;border-radius:6px;width:80px;"></div></td>
+                <td style="padding:16px 24px;"><div style="height:20px;background:#e5e7eb;border-radius:20px;width:60px;"></div></td>
+                <td style="padding:16px 24px;"></td>
+              </tr>
+            }
+          }
+
+          <!-- Filas -->
+          @if (!loading()) {
+            @for (contact of contacts(); track contact.id) {
+              <tr style="border-bottom:1px solid #f3f4f6;transition:background 0.1s;" class="hover:bg-gray-50">
+
+                <!-- Contacto -->
+                <td style="padding:14px 24px;">
+                  <div style="display:flex;align-items:center;gap:10px;">
+                    <div style="width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.8rem;color:white;flex-shrink:0;"
+                         [style.background]="'#1A237E'">
+                      {{ contact.name.charAt(0).toUpperCase() }}
+                    </div>
+                    <div>
+                      <div style="font-weight:500;color:#111827;">{{ contact.name }}</div>
+                      @if (contact.email) {
+                        <div style="font-size:0.75rem;color:#6b7280;">{{ contact.email }}</div>
+                      }
+                    </div>
+                  </div>
+                </td>
+
+                <!-- Empresa -->
+                <td style="padding:14px 24px;">
+                  @if (contact.company) {
+                    <div style="display:flex;align-items:center;gap:6px;">
+                      <div style="width:6px;height:6px;border-radius:50%;background:#00CED1;flex-shrink:0;"></div>
+                      <span style="color:#374151;font-size:0.875rem;">{{ contact.company.name }}</span>
+                    </div>
+                  } @else {
+                    <span style="color:#9ca3af;font-size:0.875rem;">—</span>
+                  }
+                </td>
+
+                <!-- Cargo -->
+                <td style="padding:14px 24px;color:#6b7280;">
+                  {{ contact.position || '—' }}
+                </td>
+
+                <!-- Teléfono -->
+                <td style="padding:14px 24px;color:#6b7280;">
+                  {{ contact.phone || '—' }}
+                </td>
+
+                <!-- Estado -->
+                <td style="padding:14px 24px;">
+                  @switch (contact.status) {
+                    @case ('active') {
+                      <span style="display:inline-flex;align-items:center;padding:2px 10px;border-radius:20px;font-size:0.75rem;font-weight:500;background:#dcfce7;color:#15803d;">Activo</span>
+                    }
+                    @case ('lead') {
+                      <span style="display:inline-flex;align-items:center;padding:2px 10px;border-radius:20px;font-size:0.75rem;font-weight:500;background:#dbeafe;color:#1d4ed8;">Lead</span>
+                    }
+                    @case ('inactive') {
+                      <span style="display:inline-flex;align-items:center;padding:2px 10px;border-radius:20px;font-size:0.75rem;font-weight:500;background:#f3f4f6;color:#6b7280;">Inactivo</span>
+                    }
+                  }
+                </td>
+
+                <!-- Acciones -->
+                <td style="padding:14px 24px;text-align:right;">
+                  <button
+                    (click)="deleteContact(contact.id)"
+                    style="color:#9ca3af;background:none;border:none;cursor:pointer;padding:4px;border-radius:6px;display:flex;align-items:center;"
+                    title="Eliminar contacto"
+                  >
+                    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                      <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                  </button>
+                </td>
+              </tr>
+            }
+
+            <!-- Empty state -->
+            @if (contacts().length === 0) {
+              <tr>
+                <td colspan="6" style="padding:64px 24px;text-align:center;">
+                  <svg width="48" height="48" fill="none" stroke="#d1d5db" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" style="margin:0 auto 12px;">
+                    <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+                    <circle cx="9" cy="7" r="4"/>
+                    <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+                  </svg>
+                  <p style="color:#6b7280;font-weight:500;margin:0;">No hay contactos</p>
+                  <p style="color:#9ca3af;font-size:0.75rem;margin:4px 0 0;">Crea tu primer contacto pulsando "Nuevo Contacto"</p>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+
+      <!-- Paginación info -->
+      @if (!loading() && total() > 0) {
+        <div style="padding:10px 24px;border-top:1px solid #f3f4f6;font-size:0.75rem;color:#9ca3af;">
+          Mostrando {{ contacts().length }} de {{ total() }} contactos
+        </div>
+      }
+    </div>
+  </main>
+</div>
+
+<!-- Modal: Nuevo Contacto -->
+@if (showModal()) {
+  <div style="position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:1rem;">
+    <div style="position:absolute;inset:0;background:rgba(0,0,0,0.4);backdrop-filter:blur(4px);" (click)="closeModal()"></div>
+
+    <div style="position:relative;background:white;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,0.15);width:100%;max-width:480px;padding:1.75rem;z-index:10;">
+
+      <!-- Header modal -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
+        <h2 style="font-size:1.125rem;font-weight:600;color:#111827;margin:0;">Nuevo Contacto</h2>
+        <button (click)="closeModal()" style="color:#9ca3af;background:none;border:none;cursor:pointer;display:flex;padding:4px;">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <path d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <form (ngSubmit)="submitCreate()" style="display:flex;flex-direction:column;gap:1rem;">
+
+        <!-- Nombre -->
+        <div>
+          <label style="display:block;font-size:0.875rem;font-weight:500;color:#374151;margin-bottom:5px;">
+            Nombre <span style="color:#ef4444;">*</span>
+          </label>
+          <input
+            type="text"
+            [value]="form().name"
+            (input)="patchForm('name', $any($event.target).value)"
+            placeholder="Nombre completo"
+            required
+            style="width:100%;padding:9px 12px;font-size:0.875rem;border:1.5px solid #e5e7eb;border-radius:10px;outline:none;box-sizing:border-box;"
+            (focus)="$any($event.target).style.borderColor='#00CED1'"
+            (blur)="$any($event.target).style.borderColor='#e5e7eb'"
+          />
+        </div>
+
+        <!-- Email + Teléfono -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div>
+            <label style="display:block;font-size:0.875rem;font-weight:500;color:#374151;margin-bottom:5px;">Email</label>
+            <input
+              type="email"
+              [value]="form().email ?? ''"
+              (input)="patchForm('email', $any($event.target).value)"
+              placeholder="email@empresa.com"
+              style="width:100%;padding:9px 12px;font-size:0.875rem;border:1.5px solid #e5e7eb;border-radius:10px;outline:none;box-sizing:border-box;"
+              (focus)="$any($event.target).style.borderColor='#00CED1'"
+              (blur)="$any($event.target).style.borderColor='#e5e7eb'"
+            />
+          </div>
+          <div>
+            <label style="display:block;font-size:0.875rem;font-weight:500;color:#374151;margin-bottom:5px;">Teléfono</label>
+            <input
+              type="tel"
+              [value]="form().phone ?? ''"
+              (input)="patchForm('phone', $any($event.target).value)"
+              placeholder="+34 600 000 000"
+              style="width:100%;padding:9px 12px;font-size:0.875rem;border:1.5px solid #e5e7eb;border-radius:10px;outline:none;box-sizing:border-box;"
+              (focus)="$any($event.target).style.borderColor='#00CED1'"
+              (blur)="$any($event.target).style.borderColor='#e5e7eb'"
+            />
+          </div>
+        </div>
+
+        <!-- Cargo -->
+        <div>
+          <label style="display:block;font-size:0.875rem;font-weight:500;color:#374151;margin-bottom:5px;">Cargo / Puesto</label>
+          <input
+            type="text"
+            [value]="form().position ?? ''"
+            (input)="patchForm('position', $any($event.target).value)"
+            placeholder="Ej: Director Comercial"
+            style="width:100%;padding:9px 12px;font-size:0.875rem;border:1.5px solid #e5e7eb;border-radius:10px;outline:none;box-sizing:border-box;"
+            (focus)="$any($event.target).style.borderColor='#00CED1'"
+            (blur)="$any($event.target).style.borderColor='#e5e7eb'"
+          />
+        </div>
+
+        <!-- Empresa + Estado -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div>
+            <label style="display:block;font-size:0.875rem;font-weight:500;color:#374151;margin-bottom:5px;">Empresa</label>
+            <select
+              [value]="form().company_id ?? ''"
+              (change)="patchForm('company_id', $any($event.target).value ? +$any($event.target).value : null)"
+              style="width:100%;padding:9px 12px;font-size:0.875rem;border:1.5px solid #e5e7eb;border-radius:10px;outline:none;background:white;box-sizing:border-box;"
+              (focus)="$any($event.target).style.borderColor='#00CED1'"
+              (blur)="$any($event.target).style.borderColor='#e5e7eb'"
+            >
+              <option value="">— Sin empresa —</option>
+              @for (company of companies(); track company.id) {
+                <option [value]="company.id">{{ company.name }}</option>
+              }
+            </select>
+          </div>
+          <div>
+            <label style="display:block;font-size:0.875rem;font-weight:500;color:#374151;margin-bottom:5px;">Estado</label>
+            <select
+              [value]="form().status"
+              (change)="patchForm('status', $any($event.target).value)"
+              style="width:100%;padding:9px 12px;font-size:0.875rem;border:1.5px solid #e5e7eb;border-radius:10px;outline:none;background:white;box-sizing:border-box;"
+              (focus)="$any($event.target).style.borderColor='#00CED1'"
+              (blur)="$any($event.target).style.borderColor='#e5e7eb'"
+            >
+              <option value="active">Activo</option>
+              <option value="lead">Lead</option>
+              <option value="inactive">Inactivo</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Acciones -->
+        <div style="display:flex;justify-content:flex-end;gap:10px;padding-top:6px;">
+          <button
+            type="button"
+            (click)="closeModal()"
+            style="padding:9px 18px;font-size:0.875rem;color:#6b7280;border:1.5px solid #e5e7eb;border-radius:10px;background:white;cursor:pointer;"
+          >
+            Cancelar
+          </button>
+          <button
+            type="submit"
+            [disabled]="saving()"
+            style="padding:9px 20px;font-size:0.875rem;font-weight:600;color:white;border:none;border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:6px;"
+            [style.background]="saving() ? '#9ca3af' : '#1A237E'"
+          >
+            @if (saving()) {
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" style="animation:spin 1s linear infinite;">
+                <circle style="opacity:0.25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                <path style="opacity:0.75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+              </svg>
+              Guardando...
+            } @else {
+              Crear contacto
+            }
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+}
+
+<style>@keyframes spin { to { transform: rotate(360deg); } }</style>

@@ -1,0 +1,428 @@
+<div class="flex min-h-screen bg-gray-50">
+  <app-sidebar />
+
+  <main class="flex-1 p-8 overflow-auto">
+
+    <!-- Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
+      <div>
+        <h1 style="font-size:1.5rem;font-weight:700;color:#111827;margin:0;">Reuniones</h1>
+        <p style="font-size:0.875rem;color:#6b7280;margin:4px 0 0;">Agenda y gestiona tus reuniones</p>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <!-- Tabs -->
+        <div style="display:flex;background:#f3f4f6;border-radius:10px;padding:3px;">
+          <button
+            (click)="activeTab.set('calendar')"
+            style="padding:6px 14px;font-size:0.8rem;font-weight:500;border:none;cursor:pointer;border-radius:8px;transition:all 0.15s;"
+            [style.background]="activeTab() === 'calendar' ? 'white' : 'transparent'"
+            [style.color]="activeTab() === 'calendar' ? '#111827' : '#6b7280'"
+            [style.box-shadow]="activeTab() === 'calendar' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'"
+          >
+            <span style="display:flex;align-items:center;gap:6px;">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+              Calendario
+            </span>
+          </button>
+          <button
+            (click)="activeTab.set('list')"
+            style="padding:6px 14px;font-size:0.8rem;font-weight:500;border:none;cursor:pointer;border-radius:8px;transition:all 0.15s;"
+            [style.background]="activeTab() === 'list' ? 'white' : 'transparent'"
+            [style.color]="activeTab() === 'list' ? '#111827' : '#6b7280'"
+            [style.box-shadow]="activeTab() === 'list' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none'"
+          >
+            <span style="display:flex;align-items:center;gap:6px;">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="3" cy="6" r="1" fill="currentColor"/><circle cx="3" cy="12" r="1" fill="currentColor"/><circle cx="3" cy="18" r="1" fill="currentColor"/>
+              </svg>
+              Lista
+            </span>
+          </button>
+        </div>
+        <button
+          (click)="openModal()"
+          style="display:flex;align-items:center;gap:6px;padding:8px 16px;font-size:0.875rem;font-weight:500;color:white;border:none;border-radius:10px;cursor:pointer;background:#1A237E;"
+        >
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <path d="M12 4v16m8-8H4"/>
+          </svg>
+          Nueva Reunión
+        </button>
+      </div>
+    </div>
+
+    <!-- Banners -->
+    @if (errorMsg()) {
+      <div style="margin-bottom:1rem;display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:10px;background:#fff1f2;border:1px solid #fecdd3;color:#be123c;font-size:0.875rem;">
+        <svg width="15" height="15" fill="currentColor" viewBox="0 0 20 20" style="flex-shrink:0;">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+        </svg>
+        {{ errorMsg() }}
+      </div>
+    }
+    @if (successMsg()) {
+      <div style="margin-bottom:1rem;display:flex;align-items:center;gap:8px;padding:10px 16px;border-radius:10px;background:#f0fdf4;border:1px solid #bbf7d0;color:#15803d;font-size:0.875rem;">
+        <svg width="15" height="15" fill="currentColor" viewBox="0 0 20 20" style="flex-shrink:0;">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+        </svg>
+        {{ successMsg() }}
+      </div>
+    }
+
+    <!-- Layout: Calendario/Lista + Próximas reuniones -->
+    <div style="display:grid;grid-template-columns:1fr 300px;gap:1.5rem;align-items:start;">
+
+      <!-- Panel principal -->
+      <div>
+
+        <!-- ═══ VISTA CALENDARIO ═══ -->
+        @if (activeTab() === 'calendar') {
+          <div style="background:white;border-radius:16px;border:1px solid #e5e7eb;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
+
+            <!-- Cabecera del calendario -->
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:1rem 1.5rem;border-bottom:1px solid #f3f4f6;">
+              <button (click)="prevMonth()" style="width:32px;height:32px;border:1.5px solid #e5e7eb;border-radius:8px;background:white;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#6b7280;">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+              </button>
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span style="font-weight:600;color:#111827;font-size:0.95rem;text-transform:capitalize;">{{ calendarTitle() }}</span>
+                <button (click)="goToday()" style="padding:3px 10px;font-size:0.75rem;font-weight:500;color:#1A237E;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;cursor:pointer;">Hoy</button>
+              </div>
+              <button (click)="nextMonth()" style="width:32px;height:32px;border:1.5px solid #e5e7eb;border-radius:8px;background:white;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#6b7280;">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+              </button>
+            </div>
+
+            <!-- Días de la semana -->
+            <div style="display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid #f3f4f6;">
+              @for (day of ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom']; track day) {
+                <div style="text-align:center;padding:8px 4px;font-size:0.72rem;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.05em;">{{ day }}</div>
+              }
+            </div>
+
+            <!-- Celdas -->
+            <div style="display:grid;grid-template-columns:repeat(7,1fr);">
+              @for (cell of calendarDays(); track cell.date.toISOString()) {
+                <div
+                  style="min-height:80px;padding:6px;border-right:1px solid #f9fafb;border-bottom:1px solid #f9fafb;position:relative;"
+                  [style.background]="cell.isToday ? '#eff6ff' : (cell.isCurrentMonth ? 'white' : '#fafafa')"
+                >
+                  <!-- Número del día -->
+                  <div style="display:flex;justify-content:flex-end;margin-bottom:4px;">
+                    <span
+                      style="width:22px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:50%;font-size:0.75rem;font-weight:500;"
+                      [style.background]="cell.isToday ? '#1A237E' : 'transparent'"
+                      [style.color]="cell.isToday ? 'white' : (cell.isCurrentMonth ? '#374151' : '#d1d5db')"
+                    >
+                      {{ cell.date.getDate() }}
+                    </span>
+                  </div>
+                  <!-- Reuniones del día -->
+                  @for (meeting of cell.meetings.slice(0, 2); track meeting.id) {
+                    <div
+                      style="font-size:0.68rem;padding:2px 5px;border-radius:4px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:default;"
+                      [style.background]="meeting.status === 'scheduled' ? '#dbeafe' : (meeting.status === 'completed' ? '#dcfce7' : '#f3f4f6')"
+                      [style.color]="meeting.status === 'scheduled' ? '#1d4ed8' : (meeting.status === 'completed' ? '#15803d' : '#6b7280')"
+                      [title]="meeting.title + ' · ' + formatTime(meeting.start_at)"
+                    >
+                      {{ formatTime(meeting.start_at) }} {{ meeting.title }}
+                    </div>
+                  }
+                  @if (cell.meetings.length > 2) {
+                    <div style="font-size:0.65rem;color:#9ca3af;padding-left:4px;">+{{ cell.meetings.length - 2 }} más</div>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- ═══ VISTA LISTA ═══ -->
+        @if (activeTab() === 'list') {
+          <div style="background:white;border-radius:16px;border:1px solid #e5e7eb;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
+            <table style="width:100%;font-size:0.875rem;border-collapse:collapse;">
+              <thead>
+                <tr style="background:#f9fafb;border-bottom:1px solid #e5e7eb;">
+                  <th style="text-align:left;padding:12px 20px;font-weight:600;color:#4b5563;">Reunión</th>
+                  <th style="text-align:left;padding:12px 20px;font-weight:600;color:#4b5563;">Empresa</th>
+                  <th style="text-align:left;padding:12px 20px;font-weight:600;color:#4b5563;">Fecha y hora</th>
+                  <th style="text-align:left;padding:12px 20px;font-weight:600;color:#4b5563;">Duración</th>
+                  <th style="text-align:left;padding:12px 20px;font-weight:600;color:#4b5563;">Estado</th>
+                  <th style="padding:12px 20px;"></th>
+                </tr>
+              </thead>
+              <tbody>
+                @if (loading()) {
+                  @for (i of [1,2,3,4]; track i) {
+                    <tr class="animate-pulse" style="border-bottom:1px solid #f3f4f6;">
+                      <td style="padding:14px 20px;"><div style="height:14px;background:#e5e7eb;border-radius:6px;width:160px;"></div></td>
+                      <td style="padding:14px 20px;"><div style="height:14px;background:#e5e7eb;border-radius:6px;width:100px;"></div></td>
+                      <td style="padding:14px 20px;"><div style="height:14px;background:#e5e7eb;border-radius:6px;width:120px;"></div></td>
+                      <td style="padding:14px 20px;"><div style="height:14px;background:#e5e7eb;border-radius:6px;width:60px;"></div></td>
+                      <td style="padding:14px 20px;"><div style="height:20px;background:#e5e7eb;border-radius:20px;width:80px;"></div></td>
+                      <td></td>
+                    </tr>
+                  }
+                }
+                @if (!loading()) {
+                  @for (m of meetings(); track m.id) {
+                    <tr style="border-bottom:1px solid #f3f4f6;" class="hover:bg-gray-50">
+                      <td style="padding:14px 20px;">
+                        <div style="font-weight:500;color:#111827;">{{ m.title }}</div>
+                        @if (m.contact) {
+                          <div style="font-size:0.75rem;color:#9ca3af;margin-top:2px;">{{ m.contact.name }}</div>
+                        }
+                      </td>
+                      <td style="padding:14px 20px;color:#374151;">{{ m.company?.name ?? '—' }}</td>
+                      <td style="padding:14px 20px;color:#6b7280;">{{ formatDateTime(m.start_at) }}</td>
+                      <td style="padding:14px 20px;color:#6b7280;">{{ m.duration_min }} min</td>
+                      <td style="padding:14px 20px;">
+                        <span style="display:inline-flex;align-items:center;padding:2px 10px;border-radius:20px;font-size:0.75rem;font-weight:500;" [style]="statusColor(m.status)">
+                          {{ statusLabel(m.status) }}
+                        </span>
+                      </td>
+                      <td style="padding:14px 20px;text-align:right;">
+                        <button (click)="deleteMeeting(m.id)" style="color:#9ca3af;background:none;border:none;cursor:pointer;padding:4px;display:flex;" title="Eliminar">
+                          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                            <path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                          </svg>
+                        </button>
+                      </td>
+                    </tr>
+                  }
+                  @if (meetings().length === 0) {
+                    <tr>
+                      <td colspan="6" style="padding:48px 20px;text-align:center;">
+                        <svg width="40" height="40" fill="none" stroke="#d1d5db" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" style="margin:0 auto 10px;">
+                          <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                        </svg>
+                        <p style="color:#6b7280;font-weight:500;margin:0;">No hay reuniones</p>
+                        <p style="color:#9ca3af;font-size:0.75rem;margin:4px 0 0;">Crea tu primera reunión</p>
+                      </td>
+                    </tr>
+                  }
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+      </div>
+
+      <!-- Panel lateral: Próximas reuniones -->
+      <div style="display:flex;flex-direction:column;gap:1rem;">
+
+        <!-- Próximas -->
+        <div style="background:white;border-radius:16px;border:1px solid #e5e7eb;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
+          <div style="padding:1rem 1.25rem;border-bottom:1px solid #f3f4f6;">
+            <h3 style="font-size:0.875rem;font-weight:600;color:#111827;margin:0;">Próximas reuniones</h3>
+          </div>
+
+          @if (upcoming().length === 0) {
+            <div style="padding:1.5rem 1.25rem;text-align:center;">
+              <svg width="32" height="32" fill="none" stroke="#d1d5db" stroke-width="1.5" viewBox="0 0 24 24" style="margin:0 auto 8px;">
+                <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+              <p style="font-size:0.8rem;color:#9ca3af;margin:0;">Sin reuniones programadas</p>
+            </div>
+          }
+
+          @for (m of upcoming(); track m.id) {
+            <div style="padding:0.875rem 1.25rem;border-bottom:1px solid #f9fafb;display:flex;gap:10px;align-items:flex-start;">
+              <!-- Dot de color según estado -->
+              <div style="margin-top:4px;width:8px;height:8px;border-radius:50%;flex-shrink:0;" [style.background]="meetingDotColor(m.status)"></div>
+              <div style="flex:1;min-width:0;">
+                <p style="font-size:0.8rem;font-weight:600;color:#111827;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ m.title }}</p>
+                <p style="font-size:0.72rem;color:#6b7280;margin:2px 0 0;">{{ m.company?.name }}</p>
+                <div style="display:flex;align-items:center;gap:4px;margin-top:4px;">
+                  <svg width="11" height="11" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                  </svg>
+                  <span style="font-size:0.7rem;color:#9ca3af;">{{ formatDateTime(m.start_at) }}</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:4px;margin-top:2px;">
+                  <svg width="11" height="11" fill="none" stroke="#9ca3af" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                  </svg>
+                  <span style="font-size:0.7rem;color:#9ca3af;">{{ m.duration_min }} min</span>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Resumen estado -->
+        <div style="background:white;border-radius:16px;border:1px solid #e5e7eb;padding:1rem 1.25rem;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
+          <h3 style="font-size:0.875rem;font-weight:600;color:#111827;margin:0 0 0.75rem;">Resumen</h3>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div style="display:flex;align-items:center;gap:6px;">
+                <div style="width:8px;height:8px;border-radius:50%;background:#1A237E;"></div>
+                <span style="font-size:0.8rem;color:#6b7280;">Programadas</span>
+              </div>
+              <span style="font-size:0.875rem;font-weight:600;color:#111827;">{{ scheduledCount() }}</span>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div style="display:flex;align-items:center;gap:6px;">
+                <div style="width:8px;height:8px;border-radius:50%;background:#00C853;"></div>
+                <span style="font-size:0.8rem;color:#6b7280;">Completadas</span>
+              </div>
+              <span style="font-size:0.875rem;font-weight:600;color:#111827;">{{ completedCount() }}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div style="display:flex;align-items:center;gap:6px;">
+                <div style="width:8px;height:8px;border-radius:50%;background:#9ca3af;"></div>
+                <span style="font-size:0.8rem;color:#6b7280;">Canceladas</span>
+              </div>
+              <span style="font-size:0.875rem;font-weight:600;color:#111827;">{{ cancelledCount() }}</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Modal: Nueva Reunión -->
+@if (showModal()) {
+  <div style="position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:1rem;">
+    <div style="position:absolute;inset:0;background:rgba(0,0,0,0.4);backdrop-filter:blur(4px);" (click)="closeModal()"></div>
+
+    <div style="position:relative;background:white;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,0.15);width:100%;max-width:520px;padding:1.75rem;z-index:10;max-height:90vh;overflow-y:auto;">
+
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
+        <h2 style="font-size:1.125rem;font-weight:600;color:#111827;margin:0;">Nueva Reunión</h2>
+        <button (click)="closeModal()" style="color:#9ca3af;background:none;border:none;cursor:pointer;display:flex;padding:4px;">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <form (ngSubmit)="submitCreate()" style="display:flex;flex-direction:column;gap:1rem;">
+
+        <!-- Título -->
+        <div>
+          <label style="display:block;font-size:0.875rem;font-weight:500;color:#374151;margin-bottom:5px;">Título <span style="color:#ef4444;">*</span></label>
+          <input type="text" [value]="form().title" (input)="patchForm('title', $any($event.target).value)"
+            placeholder="Ej: Demo del producto"
+            style="width:100%;padding:9px 12px;font-size:0.875rem;border:1.5px solid #e5e7eb;border-radius:10px;outline:none;box-sizing:border-box;"
+            (focus)="$any($event.target).style.borderColor='#00CED1'"
+            (blur)="$any($event.target).style.borderColor='#e5e7eb'" />
+        </div>
+
+        <!-- Empresa + Contacto -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div>
+            <label style="display:block;font-size:0.875rem;font-weight:500;color:#374151;margin-bottom:5px;">Empresa <span style="color:#ef4444;">*</span></label>
+            <select [value]="form().company_id || ''" (change)="patchForm('company_id', +$any($event.target).value)"
+              style="width:100%;padding:9px 12px;font-size:0.875rem;border:1.5px solid #e5e7eb;border-radius:10px;outline:none;background:white;box-sizing:border-box;"
+              (focus)="$any($event.target).style.borderColor='#00CED1'"
+              (blur)="$any($event.target).style.borderColor='#e5e7eb'">
+              <option value="">— Seleccionar —</option>
+              @for (c of companies(); track c.id) {
+                <option [value]="c.id">{{ c.name }}</option>
+              }
+            </select>
+          </div>
+          <div>
+            <label style="display:block;font-size:0.875rem;font-weight:500;color:#374151;margin-bottom:5px;">Contacto</label>
+            <select [value]="form().contact_id ?? ''" (change)="patchForm('contact_id', $any($event.target).value ? +$any($event.target).value : null)"
+              style="width:100%;padding:9px 12px;font-size:0.875rem;border:1.5px solid #e5e7eb;border-radius:10px;outline:none;background:white;box-sizing:border-box;"
+              (focus)="$any($event.target).style.borderColor='#00CED1'"
+              (blur)="$any($event.target).style.borderColor='#e5e7eb'">
+              <option value="">— Opcional —</option>
+              @for (c of contacts(); track c.id) {
+                <option [value]="c.id">{{ c.name }}</option>
+              }
+            </select>
+          </div>
+        </div>
+
+        <!-- Fecha + Hora -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div>
+            <label style="display:block;font-size:0.875rem;font-weight:500;color:#374151;margin-bottom:5px;">Fecha <span style="color:#ef4444;">*</span></label>
+            <input type="date" [value]="form().start_date" (input)="patchForm('start_date', $any($event.target).value)"
+              style="width:100%;padding:9px 12px;font-size:0.875rem;border:1.5px solid #e5e7eb;border-radius:10px;outline:none;box-sizing:border-box;"
+              (focus)="$any($event.target).style.borderColor='#00CED1'"
+              (blur)="$any($event.target).style.borderColor='#e5e7eb'" />
+          </div>
+          <div>
+            <label style="display:block;font-size:0.875rem;font-weight:500;color:#374151;margin-bottom:5px;">Hora</label>
+            <input type="time" [value]="form().start_time" (input)="patchForm('start_time', $any($event.target).value)"
+              style="width:100%;padding:9px 12px;font-size:0.875rem;border:1.5px solid #e5e7eb;border-radius:10px;outline:none;box-sizing:border-box;"
+              (focus)="$any($event.target).style.borderColor='#00CED1'"
+              (blur)="$any($event.target).style.borderColor='#e5e7eb'" />
+          </div>
+        </div>
+
+        <!-- Duración + Estado -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div>
+            <label style="display:block;font-size:0.875rem;font-weight:500;color:#374151;margin-bottom:5px;">Duración (min)</label>
+            <select [value]="form().duration_min" (change)="patchForm('duration_min', +$any($event.target).value)"
+              style="width:100%;padding:9px 12px;font-size:0.875rem;border:1.5px solid #e5e7eb;border-radius:10px;outline:none;background:white;box-sizing:border-box;"
+              (focus)="$any($event.target).style.borderColor='#00CED1'"
+              (blur)="$any($event.target).style.borderColor='#e5e7eb'">
+              <option value="15">15 min</option>
+              <option value="30">30 min</option>
+              <option value="45">45 min</option>
+              <option value="60">1 hora</option>
+              <option value="90">1h 30min</option>
+              <option value="120">2 horas</option>
+            </select>
+          </div>
+          <div>
+            <label style="display:block;font-size:0.875rem;font-weight:500;color:#374151;margin-bottom:5px;">Estado</label>
+            <select [value]="form().status" (change)="patchForm('status', $any($event.target).value)"
+              style="width:100%;padding:9px 12px;font-size:0.875rem;border:1.5px solid #e5e7eb;border-radius:10px;outline:none;background:white;box-sizing:border-box;"
+              (focus)="$any($event.target).style.borderColor='#00CED1'"
+              (blur)="$any($event.target).style.borderColor='#e5e7eb'">
+              <option value="scheduled">Programada</option>
+              <option value="completed">Completada</option>
+              <option value="cancelled">Cancelada</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Notas -->
+        <div>
+          <label style="display:block;font-size:0.875rem;font-weight:500;color:#374151;margin-bottom:5px;">Notas</label>
+          <textarea [value]="form().notes ?? ''" (input)="patchForm('notes', $any($event.target).value)"
+            placeholder="Agenda, objetivos, puntos a tratar..."
+            rows="3"
+            style="width:100%;padding:9px 12px;font-size:0.875rem;border:1.5px solid #e5e7eb;border-radius:10px;outline:none;box-sizing:border-box;resize:vertical;font-family:inherit;"
+            (focus)="$any($event.target).style.borderColor='#00CED1'"
+            (blur)="$any($event.target).style.borderColor='#e5e7eb'"></textarea>
+        </div>
+
+        <!-- Acciones -->
+        <div style="display:flex;justify-content:flex-end;gap:10px;padding-top:4px;">
+          <button type="button" (click)="closeModal()"
+            style="padding:9px 18px;font-size:0.875rem;color:#6b7280;border:1.5px solid #e5e7eb;border-radius:10px;background:white;cursor:pointer;">
+            Cancelar
+          </button>
+          <button type="submit" [disabled]="saving()"
+            style="padding:9px 20px;font-size:0.875rem;font-weight:600;color:white;border:none;border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:6px;"
+            [style.background]="saving() ? '#9ca3af' : '#1A237E'">
+            @if (saving()) {
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" style="animation:spin 1s linear infinite;">
+                <circle style="opacity:0.25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                <path style="opacity:0.75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+              </svg>
+              Guardando...
+            } @else {
+              Crear reunión
+            }
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+}
+
+<style>@keyframes spin { to { transform: rotate(360deg); } }</style>

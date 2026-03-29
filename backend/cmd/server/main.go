@@ -37,8 +37,12 @@ func main() {
 		&domain.User{},
 		&domain.License{},
 		&domain.RefreshToken{},
+		&domain.Company{},
 		&domain.Contact{},
 		&domain.Deal{},
+		&domain.Meeting{},
+		&domain.Subscription{},
+		&domain.Setting{},
 	); err != nil {
 		log.Fatalf("Error en AutoMigrate: %v", err)
 	}
@@ -47,22 +51,37 @@ func main() {
 	userRepo         := storage.NewMysqlUserRepository(db)
 	licenseRepo      := storage.NewMysqlLicenseRepository(db)
 	refreshTokenRepo := storage.NewMysqlRefreshTokenRepository(db)
+	companyRepo      := storage.NewMysqlCompanyRepository(db)
 	contactRepo      := storage.NewMysqlContactRepository(db)
 	dealRepo         := storage.NewMysqlDealRepository(db)
+	meetingRepo      := storage.NewMysqlMeetingRepository(db)
+	subscriptionRepo := storage.NewMysqlSubscriptionRepository(db)
+	settingRepo      := storage.NewMysqlSettingRepository(db)
 
 	// ── 4. Servicios core (lógica de negocio) ────────────────────
 	jwtSecret := mustEnv("JWT_SECRET")
 
 	authSvc    := services.NewAuthService(userRepo, refreshTokenRepo, licenseRepo, jwtSecret)
 	adminSvc   := services.NewAdminService(userRepo, licenseRepo)
+	companySvc := services.NewCompanyService(companyRepo)
 	contactSvc := services.NewContactService(contactRepo)
 	dealSvc    := services.NewDealService(dealRepo)
+	meetingSvc        := services.NewMeetingService(meetingRepo)
+	subscriptionSvc   := services.NewSubscriptionService(subscriptionRepo)
+	settingSvc        := services.NewSettingService(settingRepo)
+
+	// ── Seed ─────────────────────────────────────────────────────
+	seedDatabase(db, authSvc)
 
 	// ── 5. Handlers (adaptadores de entrada) ─────────────────────
 	authHandler    := handler.NewAuthHandler(authSvc)
 	adminHandler   := handler.NewAdminHandler(adminSvc)
+	companyHandler := handler.NewCompanyHandler(companySvc)
 	contactHandler := handler.NewContactHandler(contactSvc)
 	dealHandler    := handler.NewDealHandler(dealSvc)
+	meetingHandler      := handler.NewMeetingHandler(meetingSvc)
+	subscriptionHandler := handler.NewSubscriptionHandler(subscriptionSvc)
+	settingHandler      := handler.NewSettingHandler(settingSvc)
 
 	// ── 6. Fiber + Middleware global ─────────────────────────────
 	app := fiber.New(fiber.Config{
@@ -91,8 +110,12 @@ func main() {
 
 	authHandler.RegisterRoutes(app)
 	adminHandler.RegisterRoutes(app)
+	companyHandler.RegisterRoutes(app)
 	contactHandler.RegisterRoutes(app)
 	dealHandler.RegisterRoutes(app)
+	meetingHandler.RegisterRoutes(app)
+	subscriptionHandler.RegisterRoutes(app)
+	settingHandler.RegisterRoutes(app)
 
 	// ── 8. Arrancar servidor ─────────────────────────────────────
 	port := getEnvOrDefault("PORT", "8080")

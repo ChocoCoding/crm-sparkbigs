@@ -1,14 +1,15 @@
 {
   "APP": {
-    "NAME": "CRM SparkBigs",
-    "SIDEBAR": {
-      "DASHBOARD": "Dashboard",
-      "CONTACTS": "Contacts",
-      "DEALS": "Deals",
-      "ADMIN": "Administration",
-      "LOGOUT": "Logout",
-      "LOADING": "Loading..."
-    }
+    "NAME": "SparkBIGS",
+    "SUBTITLE": "Data CRM"
+  },
+  "NAV": {
+    "INICIO": "Home",
+    "EMPRESAS": "Companies",
+    "CONTACTOS": "Contacts",
+    "FINANZAS": "Finance",
+    "CONFIGURACION": "Settings",
+    "LOGOUT": "Logout"
   },
   "COMMON": {
     "REQUIRED": "*",

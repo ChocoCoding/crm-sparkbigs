@@ -22,6 +22,7 @@ export class LoginComponent {
   readonly password = signal('');
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
+  readonly showPassword = signal(false);
 
   onSubmit(): void {
     if (!this.email() || !this.password()) {

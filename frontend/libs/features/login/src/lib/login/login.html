@@ -1,65 +1,207 @@
-<div class="min-h-screen flex items-center justify-center bg-gray-50">
-  <div class="w-full max-w-md bg-white rounded-2xl shadow-lg p-8">
+<div style="min-height:100vh; display:flex;">
 
-    <h1 class="text-2xl font-bold text-gray-900 mb-6 text-center">
-      {{ 'AUTH.LOGIN_TITLE' | translate }}
-    </h1>
+  <!-- Panel izquierdo — branding -->
+  <div class="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 relative overflow-hidden"
+       style="background: linear-gradient(135deg, #1A237E 0%, #0d1b6e 55%, #005f73 100%);">
 
-    <!-- Error -->
-    @if (error()) {
-      <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
-        {{ error() }}
+    <!-- Blobs decorativos -->
+    <div style="position:absolute;top:80px;left:40px;width:280px;height:280px;border-radius:50%;background:#00CED1;opacity:0.12;filter:blur(80px);pointer-events:none;"></div>
+    <div style="position:absolute;bottom:80px;right:40px;width:320px;height:320px;border-radius:50%;background:#00C853;opacity:0.1;filter:blur(100px);pointer-events:none;"></div>
+
+    <!-- Logo -->
+    <div style="position:relative;z-index:1;">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px;">
+        <div style="width:40px;height:40px;border-radius:10px;background:#00CED1;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <svg width="22" height="22" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
+          </svg>
+        </div>
+        <span style="color:white;font-size:1.25rem;font-weight:700;letter-spacing:0.05em;">SparkBIGS</span>
       </div>
-    }
+      <p style="color:#93c5fd;font-size:0.875rem;">CRM de Datos</p>
+    </div>
 
-    <form (ngSubmit)="onSubmit()" novalidate>
-      <!-- Email -->
-      <div class="mb-4">
-        <label class="block text-sm font-medium text-gray-700 mb-1">
-          {{ 'AUTH.EMAIL' | translate }}
-        </label>
-        <input
-          type="email"
-          [ngModel]="email()"
-          (ngModelChange)="email.set($event)"
-          name="email"
-          [placeholder]="'AUTH.EMAIL_PLACEHOLDER' | translate"
-          class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          autocomplete="email"
-          required
-        />
+    <!-- Tagline -->
+    <div style="position:relative;z-index:1;flex:1;display:flex;flex-direction:column;justify-content:center;">
+      <h2 style="font-size:2.5rem;font-weight:700;color:white;line-height:1.2;margin-bottom:1rem;">
+        Impulsa tus<br/>
+        <span style="color:#00CED1;">relaciones</span><br/>
+        comerciales.
+      </h2>
+      <p style="color:#bfdbfe;font-size:1rem;line-height:1.6;max-width:340px;">
+        Gestiona empresas, contactos y oportunidades desde un solo lugar con datos en tiempo real.
+      </p>
+
+      <!-- Stats -->
+      <div style="margin-top:2.5rem;display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;">
+        <div style="background:rgba(255,255,255,0.1);border-radius:12px;padding:1rem;border:1px solid rgba(255,255,255,0.1);backdrop-filter:blur(8px);">
+          <div style="font-size:1.5rem;font-weight:700;color:#00CED1;">360°</div>
+          <div style="color:#bfdbfe;font-size:0.75rem;margin-top:4px;">Vista del cliente</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.1);border-radius:12px;padding:1rem;border:1px solid rgba(255,255,255,0.1);backdrop-filter:blur(8px);">
+          <div style="font-size:1.5rem;font-weight:700;color:#00C853;">100%</div>
+          <div style="color:#bfdbfe;font-size:0.75rem;margin-top:4px;">Datos seguros</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.1);border-radius:12px;padding:1rem;border:1px solid rgba(255,255,255,0.1);backdrop-filter:blur(8px);">
+          <div style="font-size:1.5rem;font-weight:700;color:white;">∞</div>
+          <div style="color:#bfdbfe;font-size:0.75rem;margin-top:4px;">Escalabilidad</div>
+        </div>
       </div>
+    </div>
 
-      <!-- Password -->
-      <div class="mb-6">
-        <label class="block text-sm font-medium text-gray-700 mb-1">
-          {{ 'AUTH.PASSWORD' | translate }}
-        </label>
-        <input
-          type="password"
-          [ngModel]="password()"
-          (ngModelChange)="password.set($event)"
-          name="password"
-          [placeholder]="'AUTH.PASSWORD_PLACEHOLDER' | translate"
-          class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          autocomplete="current-password"
-          required
-        />
-      </div>
-
-      <!-- Submit -->
-      <button
-        type="submit"
-        [disabled]="loading()"
-        class="w-full py-2 px-4 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-semibold rounded-lg transition-colors"
-      >
-        @if (loading()) {
-          {{ 'AUTH.LOGGING_IN' | translate }}
-        } @else {
-          {{ 'AUTH.LOGIN_BUTTON' | translate }}
-        }
-      </button>
-    </form>
-
+    <!-- Footer -->
+    <div style="position:relative;z-index:1;color:#93c5fd;font-size:0.75rem;">
+      © 2025 SparkBIGS · Todos los derechos reservados
+    </div>
   </div>
+
+  <!-- Panel derecho — formulario -->
+  <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:2rem;background:#F8FAFC;">
+    <div style="width:100%;max-width:420px;">
+
+      <!-- Logo móvil -->
+      <div class="lg:hidden" style="display:flex;align-items:center;gap:10px;margin-bottom:2rem;">
+        <div style="width:32px;height:32px;border-radius:8px;background:#1A237E;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <svg width="18" height="18" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
+          </svg>
+        </div>
+        <span style="font-weight:700;color:#111827;font-size:1rem;">SparkBIGS</span>
+      </div>
+
+      <!-- Card -->
+      <div style="background:white;border-radius:20px;border:1px solid #e5e7eb;padding:2rem;box-shadow:0 1px 3px rgba(0,0,0,0.06);">
+
+        <div style="margin-bottom:2rem;">
+          <h1 style="font-size:1.5rem;font-weight:700;color:#111827;margin:0 0 6px 0;">Bienvenido de nuevo</h1>
+          <p style="color:#6b7280;font-size:0.875rem;margin:0;">Inicia sesión en tu cuenta</p>
+        </div>
+
+        <!-- Error -->
+        @if (error()) {
+          <div style="margin-bottom:1.25rem;display:flex;align-items:flex-start;gap:10px;padding:12px 16px;border-radius:12px;background:#fff1f2;border:1px solid #fecdd3;color:#be123c;font-size:0.875rem;">
+            <svg width="16" height="16" fill="currentColor" viewBox="0 0 20 20" style="flex-shrink:0;margin-top:1px;">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+            </svg>
+            {{ error() }}
+          </div>
+        }
+
+        <form (ngSubmit)="onSubmit()" novalidate style="display:flex;flex-direction:column;gap:1.25rem;">
+
+          <!-- Email -->
+          <div>
+            <label style="display:block;font-size:0.875rem;font-weight:500;color:#374151;margin-bottom:6px;">
+              Correo electrónico
+            </label>
+            <div style="position:relative;">
+              <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#9ca3af;display:flex;">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                  <path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                </svg>
+              </span>
+              <input
+                type="email"
+                [ngModel]="email()"
+                (ngModelChange)="email.set($event)"
+                name="email"
+                placeholder="tu@empresa.com"
+                autocomplete="email"
+                required
+                style="width:100%;padding:10px 14px 10px 40px;font-size:0.875rem;border:1.5px solid #e5e7eb;border-radius:10px;outline:none;transition:border-color 0.15s,box-shadow 0.15s;background:white;box-sizing:border-box;"
+                (focus)="$any($event.target).style.borderColor='#00CED1'; $any($event.target).style.boxShadow='0 0 0 3px rgba(0,206,209,0.15)'"
+                (blur)="$any($event.target).style.borderColor='#e5e7eb'; $any($event.target).style.boxShadow='none'"
+              />
+            </div>
+          </div>
+
+          <!-- Contraseña -->
+          <div>
+            <label style="display:block;font-size:0.875rem;font-weight:500;color:#374151;margin-bottom:6px;">
+              Contraseña
+            </label>
+            <div style="position:relative;">
+              <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#9ca3af;display:flex;">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                  <path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+              </span>
+              <input
+                [type]="showPassword() ? 'text' : 'password'"
+                [ngModel]="password()"
+                (ngModelChange)="password.set($event)"
+                name="password"
+                placeholder="••••••••"
+                autocomplete="current-password"
+                required
+                style="width:100%;padding:10px 40px 10px 40px;font-size:0.875rem;border:1.5px solid #e5e7eb;border-radius:10px;outline:none;transition:border-color 0.15s,box-shadow 0.15s;background:white;box-sizing:border-box;"
+                (focus)="$any($event.target).style.borderColor='#00CED1'; $any($event.target).style.boxShadow='0 0 0 3px rgba(0,206,209,0.15)'"
+                (blur)="$any($event.target).style.borderColor='#e5e7eb'; $any($event.target).style.boxShadow='none'"
+              />
+              <button
+                type="button"
+                (click)="showPassword.set(!showPassword())"
+                style="position:absolute;right:12px;top:50%;transform:translateY(-50%);color:#9ca3af;background:none;border:none;cursor:pointer;display:flex;padding:0;"
+              >
+                @if (showPassword()) {
+                  <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/>
+                    <line x1="1" y1="1" x2="23" y2="23"/>
+                  </svg>
+                } @else {
+                  <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                  </svg>
+                }
+              </button>
+            </div>
+          </div>
+
+          <!-- Botón submit -->
+          <button
+            type="submit"
+            [disabled]="loading()"
+            style="width:100%;padding:11px 16px;font-size:0.9rem;font-weight:600;color:white;border:none;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity 0.15s;background:linear-gradient(135deg, #1A237E 0%, #00CED1 100%);"
+            [style.opacity]="loading() ? '0.65' : '1'"
+          >
+            @if (loading()) {
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" style="animation:spin 1s linear infinite;">
+                <circle style="opacity:0.25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                <path style="opacity:0.75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+              </svg>
+              Iniciando sesión...
+            } @else {
+              Iniciar sesión
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            }
+          </button>
+
+        </form>
+
+        <!-- Demo credentials -->
+        <div style="margin-top:1.5rem;padding:1rem;border-radius:12px;background:#F8FAFC;border:1px solid #e5e7eb;">
+          <p style="font-size:0.7rem;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.08em;margin:0 0 8px 0;">Acceso de demostración</p>
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span style="font-size:0.75rem;color:#6b7280;">Admin</span>
+              <span style="font-size:0.72rem;font-family:monospace;color:#374151;">admin&#64;sparkbigs.com · Admin1234!</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <span style="font-size:0.75rem;color:#6b7280;">Usuario</span>
+              <span style="font-size:0.72rem;font-family:monospace;color:#374151;">demo&#64;sparkbigs.com · User1234!</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
 </div>
+
+<style>
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>

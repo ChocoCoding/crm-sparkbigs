@@ -1,18 +1,15 @@
 import { Routes } from '@angular/router';
-import { authGuard, adminGuard } from '@miapp/data-access';
+import { authGuard } from '@miapp/data-access';
 
 export const appRoutes: Routes = [
+  // ── Pública ──────────────────────────────────────────────────
   {
     path: 'login',
     loadComponent: () =>
       import('@miapp/features/login').then((m) => m.LoginComponent),
   },
-  {
-    path: 'admin',
-    canActivate: [adminGuard],
-    loadComponent: () =>
-      import('@miapp/features/admin-panel').then((m) => m.AdminPanelComponent),
-  },
+
+  // ── Autenticadas ─────────────────────────────────────────────
   {
     path: '',
     canActivate: [authGuard],
@@ -21,5 +18,39 @@ export const appRoutes: Routes = [
         (m) => m.HomeDashboardComponent
       ),
   },
+  {
+    path: 'empresas',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('@miapp/features/empresas').then((m) => m.EmpresasComponent),
+  },
+  {
+    path: 'contactos',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('@miapp/features/contactos').then((m) => m.ContactosComponent),
+  },
+  {
+    path: 'reuniones',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('@miapp/features/reuniones').then((m) => m.ReunionesComponent),
+  },
+  {
+    path: 'finanzas',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('@miapp/features/finanzas').then((m) => m.FinanzasComponent),
+  },
+  {
+    path: 'configuracion',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('@miapp/features/configuracion').then(
+        (m) => m.ConfiguracionComponent
+      ),
+  },
+
+  // ── Fallback ─────────────────────────────────────────────────
   { path: '**', redirectTo: '' },
 ];
