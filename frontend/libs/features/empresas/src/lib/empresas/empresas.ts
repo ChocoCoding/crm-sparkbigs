@@ -109,11 +109,13 @@ export class EmpresasComponent implements OnInit {
     });
   }
 
-  statusClass(status: Company['status']): string {
+  statusStyle(status: Company['status']): string {
     const map: Record<Company['status'], string> = {
-      active: 'bg-green-100 text-green-700', prospect: 'bg-blue-100 text-blue-700', inactive: 'bg-gray-100 text-gray-500',
+      active:   'background:#e8f5e9;color:#006e2a;',
+      prospect: 'background:#e8eaf6;color:#4c56af;',
+      inactive: 'background:var(--surface-low,#edf0f8);color:var(--on-surface-subtle,#9a9db8);',
     };
-    return map[status] ?? 'bg-gray-100 text-gray-500';
+    return map[status] ?? map['inactive'];
   }
 
   statusLabel(status: Company['status']): string {

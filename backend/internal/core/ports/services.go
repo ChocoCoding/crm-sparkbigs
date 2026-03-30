@@ -86,6 +86,23 @@ type SubscriptionService interface {
 	DeleteSubscription(id, userID uint) error
 }
 
+// APIKeyService gestiona la generación, verificación y revocación de API Keys.
+type APIKeyService interface {
+	// GenerateKey crea una nueva API Key. Retorna el texto plano UNA SOLA VEZ.
+	GenerateKey(userID uint, name, scopes string) (plaintext string, key *domain.APIKey, err error)
+	// VerifyKey valida la clave recibida y retorna la APIKey si es válida.
+	VerifyKey(rawKey string) (*domain.APIKey, error)
+	// ListKeys lista las claves de un usuario (sin exponer el hash).
+	ListKeys(userID uint) ([]domain.APIKey, error)
+	// RevokeKey desactiva una clave.
+	RevokeKey(id, userID uint) error
+}
+
+// DashboardService agrega las métricas globales del CRM.
+type DashboardService interface {
+	GetStats(userID uint) (*domain.DashboardStats, error)
+}
+
 // SettingService define las operaciones de negocio para Setting.
 type SettingService interface {
 	GetSettings(userID uint) ([]domain.Setting, error)

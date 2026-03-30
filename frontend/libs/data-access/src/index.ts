@@ -28,6 +28,8 @@ export { SubscriptionService } from './lib/subscription.service';
 export type { SubscriptionPayload } from './lib/subscription.service';
 export { SettingService } from './lib/setting.service';
 export type { SettingPayload } from './lib/setting.service';
+export { DashboardService } from './lib/dashboard.service';
+export type { DashboardStats } from './lib/dashboard.service';
 
 // Infraestructura
 export { authInterceptor } from './lib/auth.interceptor';

@@ -86,6 +86,20 @@ type SubscriptionRepository interface {
 	Delete(id uint) error
 }
 
+// APIKeyRepository gestiona la persistencia de claves de API.
+type APIKeyRepository interface {
+	Create(key *domain.APIKey) error
+	FindByPrefix(prefix string) (*domain.APIKey, error)
+	FindByUserID(userID uint) ([]domain.APIKey, error)
+	Revoke(id, userID uint) error
+	UpdateLastUsed(id uint) error
+}
+
+// DashboardRepository agrega métricas del CRM en consultas eficientes.
+type DashboardRepository interface {
+	GetStats(userID uint) (*domain.DashboardStats, error)
+}
+
 // SettingRepository define las operaciones de persistencia para Setting.
 type SettingRepository interface {
 	Upsert(setting *domain.Setting) error

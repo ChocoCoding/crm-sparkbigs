@@ -10,7 +10,8 @@
     "REUNIONES": "Reuniones",
     "FINANZAS": "Finanzas",
     "CONFIGURACION": "Configuración",
-    "LOGOUT": "Cerrar Sesión"
+    "LOGOUT": "Cerrar Sesión",
+    "ADMIN": "Administración"
   },
   "COMMON": {
     "REQUIRED": "*",

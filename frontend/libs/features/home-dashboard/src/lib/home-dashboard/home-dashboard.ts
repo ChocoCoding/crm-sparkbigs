@@ -1,88 +1,81 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HttpErrorResponse } from '@angular/common/http';
+import { RouterModule } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
-import {
-  ContactService,
-  DealService,
-  SidebarComponent,
-  Contact,
-  Deal,
-} from '@miapp/data-access';
+import { DashboardService, DashboardStats, SidebarComponent } from '@miapp/data-access';
+
+interface MrrBar { pct: number; color: string; label: string; }
 
 @Component({
   selector: 'app-home-dashboard',
   standalone: true,
-  imports: [CommonModule, TranslateModule, SidebarComponent],
+  imports: [CommonModule, RouterModule, TranslateModule, SidebarComponent],
   templateUrl: './home-dashboard.html',
   styleUrl: './home-dashboard.css',
 })
 export class HomeDashboardComponent implements OnInit {
-  private readonly contactSvc = inject(ContactService);
-  private readonly dealSvc = inject(DealService);
+  private svc = inject(DashboardService);
 
-  // Estado con Signals
-  readonly contacts = signal<Contact[]>([]);
-  readonly deals = signal<Deal[]>([]);
-  readonly totalContacts = signal(0);
-  readonly totalDeals = signal(0);
-  readonly loading = signal(false);
-  readonly error = signal<string | null>(null);
+  stats    = signal<DashboardStats | null>(null);
+  loading  = signal(true);
+  errorMsg = signal<string | null>(null);
 
-  ngOnInit(): void {
-    this.loadData();
-  }
+  readonly greeting = computed(() => {
+    const h = new Date().getHours();
+    if (h < 12) return 'Buenos días';
+    if (h < 20) return 'Buenas tardes';
+    return 'Buenas noches';
+  });
 
-  loadData(): void {
-    this.loading.set(true);
-    this.error.set(null);
+  // ── Barras del gráfico MRR (4 meses decorativos con el valor real como base) ──
+  readonly mrrBars = computed((): MrrBar[] => {
+    const mrr = this.stats()?.mrr ?? 0;
+    // Tendencia ascendente: 65% → 78% → 90% → 100% del MRR actual
+    const proportions = [0.65, 0.78, 0.90, 1.0];
+    const labels = ['ENE', 'FEB', 'MAR', 'ABR'];
+    const colors = ['#00ced180', '#00ced199', '#00ced1b3', '#00ced1'];
+    return proportions.map((p, i) => ({
+      pct: mrr === 0 ? (40 + i * 15) : Math.round(p * 100), // si no hay datos, barras demo
+      color: colors[i],
+      label: labels[i],
+    }));
+  });
 
-    this.contactSvc.getAll(0, 5).subscribe({
-      next: (res) => {
-        if (res.success && res.data) {
-          this.contacts.set(res.data.list);
-          this.totalContacts.set(res.data.total);
-        }
-      },
-      error: (err: HttpErrorResponse) => {
-        this.error.set(
-          err.error?.error?.message ?? 'Error cargando contactos'
-        );
-      },
-    });
+  // Porcentaje de suscripciones activas para la barra de desglose
+  readonly activeSubPct = computed(() => {
+    const active = this.stats()?.active_subscriptions ?? 0;
+    const expiring = this.stats()?.expiring_soon?.length ?? 0;
+    const total = active + expiring;
+    if (total === 0) return 70; // demo
+    return Math.round((active / total) * 100);
+  });
 
-    this.dealSvc.getAll(0, 5).subscribe({
-      next: (res) => {
-        if (res.success && res.data) {
-          this.deals.set(res.data.list);
-          this.totalDeals.set(res.data.total);
-        }
+  readonly expiringSubPct = computed(() => 100 - this.activeSubPct());
+
+  ngOnInit() {
+    this.svc.getStats().subscribe({
+      next: res => {
+        if (res.success && res.data) this.stats.set(res.data.stats);
         this.loading.set(false);
       },
-      error: (err: HttpErrorResponse) => {
-        this.error.set(err.error?.error?.message ?? 'Error cargando deals');
+      error: err => {
+        this.errorMsg.set(err.error?.error?.message ?? 'Error cargando el dashboard');
         this.loading.set(false);
       },
     });
   }
 
-  stageBadgeClass(stage: Deal['stage']): string {
-    const map: Record<Deal['stage'], string> = {
-      prospect: 'bg-gray-100 text-gray-700',
-      qualified: 'bg-blue-100 text-blue-700',
-      proposal: 'bg-yellow-100 text-yellow-700',
-      won: 'bg-green-100 text-green-700',
-      lost: 'bg-red-100 text-red-700',
-    };
-    return map[stage] ?? 'bg-gray-100 text-gray-700';
+  daysUntil(dateStr: string | null): number {
+    if (!dateStr) return 999;
+    return Math.ceil((new Date(dateStr).getTime() - Date.now()) / 86400000);
   }
 
-  statusBadgeClass(status: Contact['status']): string {
-    const map: Record<Contact['status'], string> = {
-      active: 'bg-green-100 text-green-700',
-      inactive: 'bg-gray-100 text-gray-600',
-      lead: 'bg-blue-100 text-blue-700',
+  companyStatusStyle(status: string): string {
+    const map: Record<string, string> = {
+      active:   'background:#e8f5e9;color:#006e2a;',
+      prospect: 'background:#e8eaf6;color:#4c56af;',
+      inactive: 'background:var(--surface-low,#edf0f8);color:var(--on-surface-subtle,#9a9db8);',
     };
-    return map[status] ?? 'bg-gray-100 text-gray-700';
+    return map[status] ?? map['inactive'];
   }
 }

@@ -1,146 +1,377 @@
-<div class="flex min-h-screen bg-gray-50">
+<div style="display:flex;min-height:100vh;background:var(--surface,#f4f6fb);">
   <app-sidebar />
 
-  <main class="flex-1 p-8 overflow-auto">
+  <!-- Área principal -->
+  <div style="flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden;">
 
-    <!-- Header -->
-    <div class="mb-8">
-      <h1 class="text-2xl font-bold text-gray-900">
-        {{ 'NAV.INICIO' | translate }}
-      </h1>
-    </div>
-
-    <!-- Error global -->
-    @if (error()) {
-      <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
-        {{ error() }}
-      </div>
-    }
-
-    <!-- KPI Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
-      <!-- Contactos -->
-      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <p class="text-sm font-medium text-gray-500 mb-1">
-          {{ 'CONTACTS.TITLE' | translate }}
-        </p>
-        @if (loading()) {
-          <div class="h-8 w-16 bg-gray-200 rounded animate-pulse"></div>
-        } @else {
-          <p class="text-3xl font-bold text-indigo-600">{{ totalContacts() }}</p>
-        }
+    <!-- ── Top Bar ─────────────────────────────────────────────── -->
+    <header style="
+      display:flex;align-items:center;gap:16px;
+      padding:16px 32px;
+      background:var(--surface-lowest,#fff);
+      box-shadow:0 1px 0 rgba(92,95,122,0.08);
+      position:sticky;top:0;z-index:10;
+      flex-wrap:wrap;
+    ">
+      <!-- Barra de búsqueda decorativa -->
+      <div style="
+        flex:1;max-width:380px;
+        display:flex;align-items:center;gap:10px;
+        background:var(--surface,#f4f6fb);
+        border-radius:10px;
+        padding:9px 14px;
+      ">
+        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="var(--on-surface-subtle,#9a9db8)" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
+        </svg>
+        <span style="font-family:'Inter',sans-serif;font-size:13px;color:var(--on-surface-subtle,#9a9db8);">
+          Buscar empresas, contactos...
+        </span>
       </div>
 
-      <!-- Deals -->
-      <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <p class="text-sm font-medium text-gray-500 mb-1">
-          {{ 'DEALS.TITLE' | translate }}
-        </p>
-        @if (loading()) {
-          <div class="h-8 w-16 bg-gray-200 rounded animate-pulse"></div>
-        } @else {
-          <p class="text-3xl font-bold text-indigo-600">{{ totalDeals() }}</p>
-        }
-      </div>
-    </div>
-
-    <!-- Contactos recientes -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 mb-8">
-      <div class="px-6 py-4 border-b border-gray-100">
-        <h2 class="text-base font-semibold text-gray-800">
-          {{ 'CONTACTS.TITLE' | translate }}
-        </h2>
-      </div>
-
-      @if (loading()) {
-        <div class="p-6 space-y-3">
-          @for (_ of [1,2,3]; track $index) {
-            <div class="h-10 bg-gray-100 rounded animate-pulse"></div>
+      <!-- Iconos de acción -->
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button style="width:36px;height:36px;border-radius:10px;border:none;background:var(--surface,#f4f6fb);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;">
+          <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="var(--on-surface-variant,#5c5f7a)" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+          </svg>
+          @if (stats()?.expiring_soon?.length) {
+            <span style="position:absolute;top:6px;right:6px;width:7px;height:7px;border-radius:50%;background:#ef4444;border:1.5px solid #fff;"></span>
           }
-        </div>
-      } @else if (contacts().length === 0) {
-        <p class="p-6 text-sm text-gray-400 text-center">
-          {{ 'COMMON.NO_RESULTS' | translate }}
-        </p>
-      } @else {
-        <div class="overflow-x-auto">
-          <table class="w-full text-sm">
-            <thead class="bg-gray-50 text-gray-500 uppercase text-xs">
-              <tr>
-                <th class="px-6 py-3 text-left font-medium">{{ 'CONTACTS.NAME' | translate }}</th>
-                <th class="px-6 py-3 text-left font-medium">{{ 'CONTACTS.EMAIL' | translate }}</th>
-                <th class="px-6 py-3 text-left font-medium">{{ 'CONTACTS.COMPANY' | translate }}</th>
-                <th class="px-6 py-3 text-left font-medium">{{ 'CONTACTS.STATUS' | translate }}</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
-              @for (contact of contacts(); track contact.id) {
-                <tr class="hover:bg-gray-50 transition-colors">
-                  <td class="px-6 py-3 font-medium text-gray-900">{{ contact.name }}</td>
-                  <td class="px-6 py-3 text-gray-500">{{ contact.email || '—' }}</td>
-                  <td class="px-6 py-3 text-gray-500">{{ contact.company || '—' }}</td>
-                  <td class="px-6 py-3">
-                    <span class="px-2 py-1 rounded-full text-xs font-medium"
-                          [class]="statusBadgeClass(contact.status)">
-                      {{ 'CONTACTS.STATUS_' + contact.status.toUpperCase() | translate }}
-                    </span>
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
+        </button>
+        <button style="width:36px;height:36px;border-radius:10px;border:none;background:var(--surface,#f4f6fb);display:flex;align-items:center;justify-content:center;cursor:pointer;">
+          <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="var(--on-surface-variant,#5c5f7a)" stroke-width="1.8">
+            <circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 8v4m0 4h.01"/>
+          </svg>
+        </button>
+      </div>
+
+      <div style="width:1px;height:24px;background:rgba(92,95,122,0.12);"></div>
+
+      <span class="dash-title-right" style="font-family:'Manrope',sans-serif;font-size:13px;font-weight:600;color:var(--clr-secondary,#4c56af);letter-spacing:-0.01em;white-space:nowrap;">
+        Panel de Control — SparkBIGS
+      </span>
+    </header>
+
+    <!-- ── Contenido ──────────────────────────────────────────── -->
+    <main class="page-main" style="flex:1;overflow:auto;padding:28px 32px;">
+
+      @if (errorMsg()) {
+        <div style="margin-bottom:20px;background:#fce8e6;border-radius:10px;padding:12px 16px;font-family:'Inter',sans-serif;font-size:13px;color:#b3261e;">
+          {{ errorMsg() }}
         </div>
       }
-    </div>
 
-    <!-- Deals recientes -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200">
-      <div class="px-6 py-4 border-b border-gray-100">
-        <h2 class="text-base font-semibold text-gray-800">
-          {{ 'DEALS.TITLE' | translate }}
-        </h2>
-      </div>
+      <!-- ── Fila KPIs ─────────────────────────────────────────── -->
+      <div class="kpi-grid-4">
 
-      @if (loading()) {
-        <div class="p-6 space-y-3">
-          @for (_ of [1,2,3]; track $index) {
-            <div class="h-10 bg-gray-100 rounded animate-pulse"></div>
+        <!-- KPI 1: Empresas Totales -->
+        <div style="background:var(--surface-lowest,#fff);border-radius:16px;padding:22px;box-shadow:var(--shadow-ambient);">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;">
+            <p style="font-family:'Inter',sans-serif;font-size:11.5px;font-weight:500;color:var(--on-surface-variant,#5c5f7a);text-transform:uppercase;letter-spacing:0.06em;margin:0;">Empresas Totales</p>
+            <div style="width:34px;height:34px;border-radius:10px;background:var(--clr-secondary-container,#e8eaf6);display:flex;align-items:center;justify-content:center;">
+              <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="#4c56af" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+              </svg>
+            </div>
+          </div>
+          @if (loading()) {
+            <div style="height:36px;width:80px;background:var(--surface-low,#edf0f8);border-radius:8px;"></div>
+          } @else {
+            <p style="font-family:'Manrope',sans-serif;font-size:32px;font-weight:800;color:var(--on-surface,#1a1c2e);letter-spacing:-0.03em;margin:0 0 6px;">
+              {{ stats()?.total_companies ?? 0 }}
+            </p>
+            <p style="font-family:'Inter',sans-serif;font-size:12px;color:var(--clr-tertiary,#006e2a);font-weight:500;margin:0;display:flex;align-items:center;gap:4px;">
+              <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 10l7-7m0 0l7 7M12 3v18"/></svg>
+              {{ stats()?.active_companies ?? 0 }} activas
+            </p>
           }
         </div>
-      } @else if (deals().length === 0) {
-        <p class="p-6 text-sm text-gray-400 text-center">
-          {{ 'COMMON.NO_RESULTS' | translate }}
-        </p>
-      } @else {
-        <div class="overflow-x-auto">
-          <table class="w-full text-sm">
-            <thead class="bg-gray-50 text-gray-500 uppercase text-xs">
-              <tr>
-                <th class="px-6 py-3 text-left font-medium">{{ 'DEALS.DEAL_TITLE' | translate }}</th>
-                <th class="px-6 py-3 text-left font-medium">{{ 'DEALS.VALUE' | translate }}</th>
-                <th class="px-6 py-3 text-left font-medium">{{ 'DEALS.STAGE' | translate }}</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
-              @for (deal of deals(); track deal.id) {
-                <tr class="hover:bg-gray-50 transition-colors">
-                  <td class="px-6 py-3 font-medium text-gray-900">{{ deal.title }}</td>
-                  <td class="px-6 py-3 text-gray-500">
-                    {{ deal.value | number:'1.2-2' }} {{ deal.currency }}
-                  </td>
-                  <td class="px-6 py-3">
-                    <span class="px-2 py-1 rounded-full text-xs font-medium"
-                          [class]="stageBadgeClass(deal.stage)">
-                      {{ 'DEALS.STAGE_' + deal.stage.toUpperCase() | translate }}
-                    </span>
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-      }
-    </div>
 
-  </main>
+        <!-- KPI 2: MRR -->
+        <div style="background:var(--surface-lowest,#fff);border-radius:16px;padding:22px;box-shadow:var(--shadow-ambient);">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;">
+            <p style="font-family:'Inter',sans-serif;font-size:11.5px;font-weight:500;color:var(--on-surface-variant,#5c5f7a);text-transform:uppercase;letter-spacing:0.06em;margin:0;">Pipeline MRR</p>
+            <div style="width:34px;height:34px;border-radius:10px;background:var(--clr-primary-container,#e0f7fa);display:flex;align-items:center;justify-content:center;">
+              <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="#00696b" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+              </svg>
+            </div>
+          </div>
+          <!-- Mini bar chart visual -->
+          <div style="display:flex;align-items:flex-end;gap:4px;height:40px;margin-bottom:10px;">
+            @for (bar of mrrBars(); track $index) {
+              <div style="flex:1;border-radius:4px 4px 0 0;transition:height 0.3s ease;"
+                [style.height.%]="bar.pct"
+                [style.background]="bar.color">
+              </div>
+            }
+          </div>
+          @if (loading()) {
+            <div style="height:28px;width:100px;background:var(--surface-low,#edf0f8);border-radius:8px;"></div>
+          } @else {
+            <p style="font-family:'Manrope',sans-serif;font-size:24px;font-weight:800;color:var(--on-surface,#1a1c2e);letter-spacing:-0.03em;margin:0 0 2px;">
+              €{{ stats()?.mrr ?? 0 | number:'1.0-0' }}
+            </p>
+            <p style="font-family:'Inter',sans-serif;font-size:11px;color:var(--on-surface-subtle,#9a9db8);margin:0;">ingresos mensuales recurrentes</p>
+          }
+        </div>
+
+        <!-- KPI 3: Contactos -->
+        <div style="background:var(--surface-lowest,#fff);border-radius:16px;padding:22px;box-shadow:var(--shadow-ambient);">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;">
+            <p style="font-family:'Inter',sans-serif;font-size:11.5px;font-weight:500;color:var(--on-surface-variant,#5c5f7a);text-transform:uppercase;letter-spacing:0.06em;margin:0;">Contactos</p>
+            <div style="width:34px;height:34px;border-radius:10px;background:var(--clr-tertiary-container,#e8f5e9);display:flex;align-items:center;justify-content:center;">
+              <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="#006e2a" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+              </svg>
+            </div>
+          </div>
+          @if (loading()) {
+            <div style="height:36px;width:60px;background:var(--surface-low,#edf0f8);border-radius:8px;"></div>
+          } @else {
+            <p style="font-family:'Manrope',sans-serif;font-size:32px;font-weight:800;color:var(--on-surface,#1a1c2e);letter-spacing:-0.03em;margin:0 0 6px;">
+              {{ stats()?.total_contacts ?? 0 }}
+            </p>
+            <p style="font-family:'Inter',sans-serif;font-size:12px;color:var(--on-surface-subtle,#9a9db8);margin:0;">registrados en el CRM</p>
+          }
+        </div>
+
+        <!-- KPI 4: Reuniones este mes -->
+        <div style="background:var(--surface-lowest,#fff);border-radius:16px;padding:22px;box-shadow:var(--shadow-ambient);">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px;">
+            <p style="font-family:'Inter',sans-serif;font-size:11.5px;font-weight:500;color:var(--on-surface-variant,#5c5f7a);text-transform:uppercase;letter-spacing:0.06em;margin:0;">Riesgo Renovación</p>
+            <div style="width:34px;height:34px;border-radius:10px;background:#fce8e6;display:flex;align-items:center;justify-content:center;">
+              <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="#b3261e" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+              </svg>
+            </div>
+          </div>
+          @if (loading()) {
+            <div style="height:36px;width:60px;background:var(--surface-low,#edf0f8);border-radius:8px;"></div>
+          } @else {
+            <!-- Gauge visual SVG -->
+            <div style="display:flex;align-items:center;gap:12px;">
+              <svg width="52" height="52" viewBox="0 0 52 52">
+                <circle cx="26" cy="26" r="20" fill="none" stroke="var(--surface-low,#edf0f8)" stroke-width="6"/>
+                <circle cx="26" cy="26" r="20" fill="none"
+                  [attr.stroke]="(stats()?.expiring_soon?.length ?? 0) > 3 ? '#b3261e' : '#f59e0b'"
+                  stroke-width="6"
+                  stroke-linecap="round"
+                  stroke-dasharray="125.6"
+                  [attr.stroke-dashoffset]="125.6 - (((stats()?.expiring_soon?.length ?? 0) / (stats()?.active_subscriptions || 1)) * 125.6)"
+                  transform="rotate(-90 26 26)"/>
+                <text x="26" y="30" text-anchor="middle" font-family="'Manrope',sans-serif" font-size="13" font-weight="800" fill="var(--on-surface,#1a1c2e)">
+                  {{ stats()?.expiring_soon?.length ?? 0 }}
+                </text>
+              </svg>
+              <div>
+                <p style="font-family:'Manrope',sans-serif;font-size:16px;font-weight:700;color:var(--on-surface,#1a1c2e);margin:0 0 2px;letter-spacing:-0.02em;">
+                  {{ (stats()?.expiring_soon?.length ?? 0) === 0 ? 'Sin riesgo' : (stats()?.expiring_soon?.length ?? 0) <= 3 ? 'Bajo' : 'Medio' }}
+                </p>
+                <p style="font-family:'Inter',sans-serif;font-size:11px;color:var(--on-surface-subtle,#9a9db8);margin:0;">
+                  {{ stats()?.expiring_soon?.length ?? 0 }} vencen en 30d
+                </p>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- ── Cuerpo principal: 2 columnas ──────────────────────── -->
+      <div style="display:grid;grid-template-columns:1fr 320px;gap:20px;margin-bottom:20px;">
+
+        <!-- ── Tabla empresas clave ───────────────────────────── -->
+        <div style="background:var(--surface-lowest,#fff);border-radius:16px;padding:24px;box-shadow:var(--shadow-ambient);">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+            <h2 style="font-family:'Manrope',sans-serif;font-size:16px;font-weight:700;color:var(--clr-secondary,#4c56af);letter-spacing:-0.02em;margin:0;">
+              Empresas Recientes
+            </h2>
+            <a routerLink="/empresas" style="font-family:'Inter',sans-serif;font-size:12px;color:var(--clr-primary-deep,#00696b);font-weight:500;text-decoration:none;display:flex;align-items:center;gap:4px;">
+              Ver todas
+              <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+            </a>
+          </div>
+
+          <!-- Cabecera tabla (sin líneas, solo texto) -->
+          <div style="display:grid;grid-template-columns:2fr 1.2fr 1fr 1.2fr;gap:8px;padding:0 8px 12px;margin-bottom:4px;">
+            @for (h of ['EMPRESA','SECTOR','ESTADO','ALTA']; track h) {
+              <span style="font-family:'Inter',sans-serif;font-size:10.5px;font-weight:600;color:var(--on-surface-subtle,#9a9db8);text-transform:uppercase;letter-spacing:0.07em;">{{ h }}</span>
+            }
+          </div>
+
+          @if (loading()) {
+            @for (i of [1,2,3,4,5]; track i) {
+              <div style="height:52px;background:var(--surface,#f4f6fb);border-radius:10px;margin-bottom:6px;"></div>
+            }
+          } @else if (!stats()?.recent_companies?.length) {
+            <div style="padding:40px;text-align:center;font-family:'Inter',sans-serif;font-size:13px;color:var(--on-surface-subtle,#9a9db8);">
+              Sin empresas registradas aún
+            </div>
+          } @else {
+            @for (c of stats()!.recent_companies; track c.id; let odd = $odd) {
+              <div style="display:grid;grid-template-columns:2fr 1.2fr 1fr 1.2fr;gap:8px;align-items:center;padding:12px 8px;border-radius:10px;transition:background 200ms ease;"
+                [style.background]="odd ? 'var(--surface,#f4f6fb)' : 'transparent'">
+                <span style="font-family:'Inter',sans-serif;font-size:13.5px;font-weight:600;color:var(--on-surface,#1a1c2e);">{{ c.name }}</span>
+                <span style="font-family:'Inter',sans-serif;font-size:12.5px;color:var(--on-surface-variant,#5c5f7a);">{{ c.sector || '—' }}</span>
+                <span>
+                  <span [style]="'font-family:Inter,sans-serif;font-size:10.5px;font-weight:600;padding:3px 8px;border-radius:999px;' + companyStatusStyle(c.status)">
+                    {{ c.status }}
+                  </span>
+                </span>
+                <span style="font-family:'Inter',sans-serif;font-size:12px;color:var(--on-surface-variant,#5c5f7a);">{{ c.created_at | date:'dd MMM yyyy' }}</span>
+              </div>
+            }
+          }
+        </div>
+
+        <!-- ── Panel derecho: próximas reuniones ──────────────── -->
+        <div style="background:var(--surface-lowest,#fff);border-radius:16px;padding:24px;box-shadow:var(--shadow-ambient);">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+            <h2 style="font-family:'Manrope',sans-serif;font-size:15px;font-weight:700;color:var(--clr-secondary,#4c56af);letter-spacing:-0.02em;margin:0;">
+              Próximas Reuniones
+            </h2>
+            <a routerLink="/reuniones" style="font-family:'Inter',sans-serif;font-size:11px;color:var(--clr-primary-deep,#00696b);font-weight:500;text-decoration:none;">Ver todas</a>
+          </div>
+
+          @if (loading()) {
+            @for (i of [1,2,3]; track i) {
+              <div style="height:64px;background:var(--surface,#f4f6fb);border-radius:12px;margin-bottom:8px;"></div>
+            }
+          } @else if (!stats()?.upcoming_meetings?.length) {
+            <div style="padding:32px 16px;text-align:center;">
+              <svg style="display:block;margin:0 auto 10px;" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="var(--on-surface-subtle,#9a9db8)" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              </svg>
+              <p style="font-family:'Inter',sans-serif;font-size:12px;color:var(--on-surface-subtle,#9a9db8);margin:0;">Sin reuniones próximas</p>
+            </div>
+          } @else {
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              @for (m of stats()!.upcoming_meetings; track m.id) {
+                <div style="background:var(--surface,#f4f6fb);border-radius:12px;padding:12px 14px;">
+                  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+                    <div style="flex:1;min-width:0;">
+                      <p style="font-family:'Inter',sans-serif;font-size:13px;font-weight:600;color:var(--on-surface,#1a1c2e);margin:0 0 3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ m.title }}</p>
+                      <p style="font-family:'Inter',sans-serif;font-size:11.5px;color:var(--on-surface-variant,#5c5f7a);margin:0;">{{ m.company?.name ?? '—' }}</p>
+                    </div>
+                    <div style="text-align:right;flex-shrink:0;">
+                      <p style="font-family:'Manrope',sans-serif;font-size:12px;font-weight:700;color:var(--clr-primary-deep,#00696b);margin:0;">{{ m.start_at | date:'dd MMM' }}</p>
+                      <p style="font-family:'Inter',sans-serif;font-size:10.5px;color:var(--on-surface-subtle,#9a9db8);margin:0;">{{ m.start_at | date:'HH:mm' }}</p>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- ── Fila inferior: MRR chart + Alertas ────────────────── -->
+      <div style="display:grid;grid-template-columns:1fr 320px;gap:20px;">
+
+        <!-- Evolución MRR + Desglose suscripciones -->
+        <div style="background:var(--surface-lowest,#fff);border-radius:16px;padding:24px;box-shadow:var(--shadow-ambient);">
+          <h2 style="font-family:'Manrope',sans-serif;font-size:15px;font-weight:700;color:var(--on-surface,#1a1c2e);letter-spacing:-0.02em;margin:0 0 24px;">
+            Evolución de Ingresos
+          </h2>
+
+          <!-- Gráfico de barras CSS -->
+          <div style="display:flex;align-items:flex-end;gap:12px;height:100px;margin-bottom:12px;">
+            @for (bar of mrrBars(); track $index) {
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
+                <div style="width:100%;display:flex;flex-direction:column;border-radius:6px 6px 0 0;overflow:hidden;"
+                  [style.height.%]="bar.pct">
+                  <div style="flex:0.55;" [style.background]="bar.color"></div>
+                  <div style="flex:0.45;background:var(--clr-secondary,#4c56af);opacity:0.6;"></div>
+                </div>
+              </div>
+            }
+          </div>
+          <div style="display:flex;gap:12px;">
+            @for (bar of mrrBars(); track $index) {
+              <span style="flex:1;text-align:center;font-family:'Inter',sans-serif;font-size:10.5px;color:var(--on-surface-subtle,#9a9db8);font-weight:500;">{{ bar.label }}</span>
+            }
+          </div>
+
+          <!-- Desglose suscripciones -->
+          <div style="margin-top:28px;">
+            <p style="font-family:'Inter',sans-serif;font-size:10.5px;font-weight:600;color:var(--on-surface-subtle,#9a9db8);text-transform:uppercase;letter-spacing:0.07em;margin:0 0 12px;">Suscripciones activas / por vencer</p>
+            <div style="height:10px;border-radius:999px;background:var(--surface-low,#edf0f8);overflow:hidden;display:flex;">
+              <div [style.width.%]="activeSubPct()" style="background:linear-gradient(90deg,#00ced1,#00969a);border-radius:999px 0 0 999px;transition:width 0.5s ease;"></div>
+              <div [style.width.%]="expiringSubPct()" style="background:#f59e0b;transition:width 0.5s ease;"></div>
+            </div>
+            <div style="display:flex;gap:20px;margin-top:10px;">
+              <div style="display:flex;align-items:center;gap:6px;">
+                <span style="width:8px;height:8px;border-radius:50%;background:#00ced1;flex-shrink:0;"></span>
+                <span style="font-family:'Inter',sans-serif;font-size:11.5px;color:var(--on-surface-variant,#5c5f7a);">Activas ({{ stats()?.active_subscriptions ?? 0 }})</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:6px;">
+                <span style="width:8px;height:8px;border-radius:50%;background:#f59e0b;flex-shrink:0;"></span>
+                <span style="font-family:'Inter',sans-serif;font-size:11.5px;color:var(--on-surface-variant,#5c5f7a);">Por vencer ({{ stats()?.expiring_soon?.length ?? 0 }})</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Alertas / vencimientos próximos -->
+        <div style="border-radius:16px;overflow:hidden;display:flex;flex-direction:column;gap:12px;">
+
+          <!-- Panel alertas con fondo navy -->
+          <div style="flex:1;background:linear-gradient(135deg,#1a237e 0%,#131b52 100%);border-radius:16px;padding:22px;box-shadow:var(--shadow-ambient);">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+              <div style="width:6px;height:6px;border-radius:50%;background:#00ced1;"></div>
+              <h3 style="font-family:'Manrope',sans-serif;font-size:13.5px;font-weight:700;color:#fff;letter-spacing:-0.01em;margin:0;">
+                Suscripciones por vencer
+              </h3>
+            </div>
+
+            @if (loading()) {
+              @for (i of [1,2]; track i) {
+                <div style="height:52px;background:rgba(255,255,255,0.08);border-radius:10px;margin-bottom:8px;"></div>
+              }
+            } @else if (!stats()?.expiring_soon?.length) {
+              <div style="padding:20px 0;text-align:center;">
+                <p style="font-family:'Inter',sans-serif;font-size:12.5px;color:rgba(255,255,255,0.45);margin:0;">Sin vencimientos en 30 días</p>
+              </div>
+            } @else {
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                @for (s of stats()!.expiring_soon; track s.id) {
+                  <div style="background:rgba(255,255,255,0.08);border-radius:10px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px;">
+                    <div style="width:28px;height:28px;border-radius:8px;background:rgba(0,206,209,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                      <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#00ced1" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                      </svg>
+                    </div>
+                    <div style="flex:1;min-width:0;">
+                      <p style="font-family:'Inter',sans-serif;font-size:12px;font-weight:600;color:#fff;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ s.name }}</p>
+                      <p style="font-family:'Inter',sans-serif;font-size:10.5px;color:rgba(255,255,255,0.5);margin:0;">{{ s.company?.name ?? '—' }}</p>
+                    </div>
+                    <span [style]="'font-family:Inter,sans-serif;font-size:10.5px;font-weight:700;padding:3px 7px;border-radius:999px;' + (daysUntil(s.renewal_date) <= 7 ? 'background:rgba(179,38,30,0.3);color:#ff8a80;' : 'background:rgba(245,158,11,0.25);color:#fcd34d;')">
+                      {{ daysUntil(s.renewal_date) }}d
+                    </span>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- Panel stats resumen -->
+          <div style="background:var(--surface-lowest,#fff);border-radius:16px;padding:18px 22px;box-shadow:var(--shadow-ambient);">
+            <p style="font-family:'Inter',sans-serif;font-size:10.5px;font-weight:600;color:var(--on-surface-subtle,#9a9db8);text-transform:uppercase;letter-spacing:0.07em;margin:0 0 14px;">Resumen del mes</p>
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;">
+                <span style="font-family:'Inter',sans-serif;font-size:13px;color:var(--on-surface-variant,#5c5f7a);">Reuniones este mes</span>
+                <span style="font-family:'Manrope',sans-serif;font-size:15px;font-weight:700;color:var(--on-surface,#1a1c2e);letter-spacing:-0.02em;">{{ stats()?.meetings_this_month ?? 0 }}</span>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;">
+                <span style="font-family:'Inter',sans-serif;font-size:13px;color:var(--on-surface-variant,#5c5f7a);">ARR total</span>
+                <span style="font-family:'Manrope',sans-serif;font-size:15px;font-weight:700;color:var(--clr-tertiary,#006e2a);letter-spacing:-0.02em;">€{{ stats()?.arr ?? 0 | number:'1.0-0' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
 </div>

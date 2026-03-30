@@ -1,7 +1,185 @@
-<div class="flex min-h-screen bg-gray-50">
+<div style="display:flex;min-height:100vh;background:var(--surface,#f4f6fb);">
   <app-sidebar />
-  <main class="flex-1 p-8">
-    <h1 class="text-2xl font-bold text-gray-900 mb-2">{{ 'NAV.configuracion' | translate | uppercase }}</h1>
-    <p class="text-gray-500 text-sm">Módulo en construcción.</p>
+
+  <main class="page-main" style="flex:1;overflow:auto;min-width:0;">
+
+    <!-- ── Header ───────────────────────────────────────────── -->
+    <div class="page-header">
+      <div>
+        <h1 style="font-family:'Manrope',sans-serif;font-size:26px;font-weight:800;color:var(--on-surface,#1a1c2e);letter-spacing:-0.03em;margin:0 0 4px;">
+          Configuración
+        </h1>
+        <p style="font-family:'Inter',sans-serif;font-size:13px;color:var(--on-surface-subtle,#9a9db8);margin:0;">
+          Ajustes generales del CRM
+        </p>
+      </div>
+      @if (settings().length === 0 && !loading()) {
+        <button (click)="seedDefaults()" style="
+          display:inline-flex;align-items:center;gap:8px;
+          padding:10px 20px;
+          background:linear-gradient(135deg,#00ced1 0%,#00969a 100%);
+          color:#fff;
+          font-family:'Inter',sans-serif;font-size:13.5px;font-weight:600;
+          border:none;border-radius:10px;cursor:pointer;
+          box-shadow:0 4px 14px rgba(0,206,209,0.28);
+        ">
+          <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+          Inicializar Ajustes
+        </button>
+      }
+    </div>
+
+    <!-- ── Error ─────────────────────────────────────────────── -->
+    @if (errorMsg()) {
+      <div style="margin-bottom:16px;background:#fce8e6;border-radius:10px;padding:12px 16px;font-family:'Inter',sans-serif;font-size:13px;color:#b3261e;display:flex;align-items:center;gap:8px;">
+        <svg width="15" height="15" fill="currentColor" viewBox="0 0 20 20" style="flex-shrink:0;">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+        </svg>
+        {{ errorMsg() }}
+      </div>
+    }
+
+    <!-- ── Empty state ───────────────────────────────────────── -->
+    @if (!loading() && settings().length === 0) {
+      <div style="background:var(--surface-lowest,#fff);border-radius:16px;box-shadow:var(--shadow-ambient,0 12px 32px rgba(25,28,30,0.06));padding:64px 24px;text-align:center;">
+        <svg style="display:block;margin:0 auto 16px;" width="52" height="52" fill="none" viewBox="0 0 24 24" stroke="var(--on-surface-subtle,#9a9db8)" stroke-width="1.2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+        </svg>
+        <p style="font-family:'Manrope',sans-serif;font-size:15px;font-weight:600;color:var(--on-surface-variant,#5c5f7a);margin:0 0 6px;">No hay ajustes configurados</p>
+        <p style="font-family:'Inter',sans-serif;font-size:12.5px;color:var(--on-surface-subtle,#9a9db8);margin:0 0 20px;">Inicializa los valores por defecto para empezar</p>
+        <button (click)="seedDefaults()" style="
+          display:inline-flex;align-items:center;gap:8px;
+          padding:10px 24px;
+          background:linear-gradient(135deg,#00ced1 0%,#00969a 100%);
+          color:#fff;
+          font-family:'Inter',sans-serif;font-size:13.5px;font-weight:600;
+          border:none;border-radius:10px;cursor:pointer;
+          box-shadow:0 4px 14px rgba(0,206,209,0.28);
+        ">
+          Inicializar ajustes por defecto
+        </button>
+      </div>
+    }
+
+    <!-- ── Skeletons ─────────────────────────────────────────── -->
+    @if (loading()) {
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        @for (i of [1,2,3]; track i) {
+          <div style="background:var(--surface-lowest,#fff);border-radius:16px;padding:24px;box-shadow:var(--shadow-ambient,0 12px 32px rgba(25,28,30,0.06));animation:pulse 1.5s ease-in-out infinite;">
+            <div style="height:16px;width:120px;background:var(--surface-low,#edf0f8);border-radius:6px;margin-bottom:20px;"></div>
+            @for (j of [1,2]; track j) {
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;">
+                <div style="height:13px;width:160px;background:var(--surface-low,#edf0f8);border-radius:6px;"></div>
+                <div style="height:36px;width:220px;background:var(--surface-low,#edf0f8);border-radius:10px;"></div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+
+    <!-- ── Ajustes agrupados por categoría ───────────────────── -->
+    @if (!loading() && settings().length > 0) {
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        @for (cat of categories(); track cat) {
+          <div style="background:var(--surface-lowest,#fff);border-radius:16px;box-shadow:var(--shadow-ambient,0 12px 32px rgba(25,28,30,0.06));overflow:hidden;">
+
+            <!-- Cabecera de categoría -->
+            <div style="display:flex;align-items:center;gap:12px;padding:16px 24px;background:var(--surface,#f4f6fb);">
+              <div style="width:36px;height:36px;border-radius:10px;background:rgba(0,206,209,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#00ced1" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" [attr.d]="categoryIcon(cat)"/>
+                </svg>
+              </div>
+              <h2 style="font-family:'Manrope',sans-serif;font-size:14px;font-weight:700;color:var(--on-surface,#1a1c2e);margin:0;letter-spacing:-0.01em;">
+                {{ categoryLabel(cat) }}
+              </h2>
+            </div>
+
+            <!-- Filas de ajustes -->
+            @for (s of settingsByCategory(cat); track s.id; let odd = $odd) {
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 24px;transition:background 200ms;"
+                [style.background]="odd ? 'var(--surface,#f4f6fb)' : 'transparent'">
+
+                <!-- Etiqueta + clave técnica -->
+                <div style="flex:1;margin-right:32px;">
+                  <p style="font-family:'Inter',sans-serif;font-size:13.5px;font-weight:500;color:var(--on-surface,#1a1c2e);margin:0 0 2px;">
+                    {{ s.label || s.key }}
+                  </p>
+                  <p style="font-family:'Inter',sans-serif;font-size:11px;font-style:normal;color:var(--on-surface-subtle,#9a9db8);margin:0;letter-spacing:0.02em;">
+                    {{ s.key }}
+                  </p>
+                </div>
+
+                <!-- Control de edición -->
+                <div style="display:flex;align-items:center;gap:10px;">
+
+                  <!-- Toggle booleano -->
+                  @if (s.input_type === 'boolean') {
+                    <button
+                      (click)="setValue(s.key, getValue(s.key) === 'true' ? 'false' : 'true'); save(s)"
+                      style="position:relative;width:48px;height:26px;border-radius:999px;border:none;cursor:pointer;transition:background 200ms;flex-shrink:0;"
+                      [style.background]="getValue(s.key) === 'true' ? '#00ced1' : 'var(--surface-low,#edf0f8)'"
+                      title="Click para alternar">
+                      <span style="position:absolute;top:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left 200ms;box-shadow:0 1px 4px rgba(0,0,0,0.15);"
+                        [style.left]="getValue(s.key) === 'true' ? '25px' : '3px'"></span>
+                    </button>
+                    <span style="font-family:'Inter',sans-serif;font-size:12px;color:var(--on-surface-subtle,#9a9db8);min-width:44px;">
+                      {{ getValue(s.key) === 'true' ? 'Activo' : 'Inactivo' }}
+                    </span>
+                  }
+
+                  <!-- Input numérico -->
+                  @else if (s.input_type === 'number') {
+                    <input type="number"
+                      [value]="getValue(s.key)"
+                      (input)="setValue(s.key, $any($event.target).value)"
+                      style="width:100px;padding:8px 12px;background:var(--surface,#f4f6fb);border:none;border-radius:10px;font-family:'Inter',sans-serif;font-size:13px;color:var(--on-surface,#1a1c2e);text-align:right;outline:none;transition:box-shadow 200ms;"
+                      onfocus="this.style.boxShadow='0 0 0 2px #00ced1'"
+                      onblur="this.style.boxShadow='none'" />
+                  }
+
+                  <!-- Input texto / email -->
+                  @else {
+                    <input [type]="s.input_type === 'email' ? 'email' : 'text'"
+                      [value]="getValue(s.key)"
+                      (input)="setValue(s.key, $any($event.target).value)"
+                      style="width:220px;padding:8px 14px;background:var(--surface,#f4f6fb);border:none;border-radius:10px;font-family:'Inter',sans-serif;font-size:13px;color:var(--on-surface,#1a1c2e);outline:none;transition:box-shadow 200ms;"
+                      onfocus="this.style.boxShadow='0 0 0 2px #00ced1'"
+                      onblur="this.style.boxShadow='none'" />
+                  }
+
+                  <!-- Botón Guardar (no en toggle) -->
+                  @if (s.input_type !== 'boolean') {
+                    <button (click)="save(s)" [disabled]="isSaving(s.key)"
+                      style="padding:8px 16px;border:none;border-radius:10px;font-family:'Inter',sans-serif;font-size:12.5px;font-weight:600;color:#fff;cursor:pointer;transition:background 200ms,opacity 200ms;white-space:nowrap;"
+                      [style.background]="isSaved(s.key) ? '#006e2a' : 'linear-gradient(135deg,#00ced1 0%,#00969a 100%)'"
+                      [style.opacity]="isSaving(s.key) ? '0.6' : '1'">
+                      @if (isSaving(s.key)) {
+                        Guardando...
+                      } @else if (isSaved(s.key)) {
+                        <span style="display:flex;align-items:center;gap:4px;">
+                          <svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                          </svg>
+                          Guardado
+                        </span>
+                      } @else {
+                        Guardar
+                      }
+                    </button>
+                  }
+
+                </div>
+              </div>
+            }
+
+          </div>
+        }
+      </div>
+    }
+
   </main>
 </div>

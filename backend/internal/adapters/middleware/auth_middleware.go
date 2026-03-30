@@ -7,18 +7,23 @@ import (
 	"github.com/sparkbigs/crm/internal/core/ports"
 )
 
-// publicPaths son rutas que no requieren autenticación.
+// publicPaths son rutas que no requieren autenticación JWT.
 var publicPaths = map[string]bool{
-	"/health":                true,
-	"/api/v1/auth/login":     true,
-	"/api/v1/auth/refresh":   true,
+	"/health":              true,
+	"/api/v1/auth/login":   true,
+	"/api/v1/auth/refresh": true,
 }
 
 // NewJWTMiddleware retorna un handler de Fiber que valida el Bearer token.
 // Inyecta userID y userRole en el contexto para uso en handlers downstream.
 func NewJWTMiddleware(authService ports.AuthService) fiber.Handler {
 	return func(c *fiber.Ctx) error {
+		// Rutas públicas por path exacto
 		if publicPaths[c.Path()] {
+			return c.Next()
+		}
+		// Webhooks usan su propio middleware de API Key — no requieren JWT
+		if strings.HasPrefix(c.Path(), "/webhooks/") {
 			return c.Next()
 		}
 

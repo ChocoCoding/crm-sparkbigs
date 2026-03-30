@@ -1,217 +1,246 @@
-<div class="flex min-h-screen bg-gray-50">
+<div style="display:flex;min-height:100vh;background:var(--surface,#f4f6fb);">
   <app-sidebar />
 
-  <main class="flex-1 p-8 overflow-auto">
-    <!-- Header -->
-    <div class="flex items-center justify-between mb-6">
+  <main class="page-main" style="flex:1;overflow:auto;min-width:0;">
+
+    <!-- ── Header ───────────────────────────────────────────── -->
+    <div class="page-header">
       <div>
-        <h1 class="text-2xl font-bold text-gray-900">Empresas</h1>
-        <p class="text-sm text-gray-500 mt-1">Gestiona tus empresas y clientes</p>
+        <h1 style="font-family:'Manrope',sans-serif;font-size:26px;font-weight:800;color:var(--on-surface,#1a1c2e);letter-spacing:-0.03em;margin:0 0 4px;">
+          Empresas
+        </h1>
+        <p style="font-family:'Inter',sans-serif;font-size:13px;color:var(--on-surface-subtle,#9a9db8);margin:0;">
+          Gestiona tus empresas y clientes
+        </p>
       </div>
-      <button
-        (click)="openModal()"
-        class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"
-      >
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+      <button (click)="openModal()" style="
+        display:inline-flex;align-items:center;gap:8px;
+        padding:10px 20px;
+        background:linear-gradient(135deg,#00ced1 0%,#00969a 100%);
+        color:#fff;
+        font-family:'Inter',sans-serif;font-size:13.5px;font-weight:600;
+        border:none;border-radius:10px;cursor:pointer;
+        box-shadow:0 4px 14px rgba(0,206,209,0.28);
+        transition:box-shadow 200ms,transform 200ms;
+      "
+      onmouseover="this.style.boxShadow='0 6px 20px rgba(0,206,209,0.42)';this.style.transform='translateY(-1px)'"
+      onmouseout="this.style.boxShadow='0 4px 14px rgba(0,206,209,0.28)';this.style.transform='translateY(0)'">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
         </svg>
         Nueva Empresa
       </button>
     </div>
 
-    <!-- Feedback banners -->
+    <!-- ── Feedback ──────────────────────────────────────────── -->
     @if (errorMsg()) {
-      <div class="mb-4 px-4 py-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm flex items-center gap-2">
-        <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+      <div style="margin-bottom:16px;background:#fce8e6;border-radius:10px;padding:12px 16px;font-family:'Inter',sans-serif;font-size:13px;color:#b3261e;display:flex;align-items:center;gap:8px;">
+        <svg width="15" height="15" fill="currentColor" viewBox="0 0 20 20" style="flex-shrink:0;">
           <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
         </svg>
         {{ errorMsg() }}
       </div>
     }
     @if (successMsg()) {
-      <div class="mb-4 px-4 py-3 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm flex items-center gap-2">
-        <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+      <div style="margin-bottom:16px;background:#e8f5e9;border-radius:10px;padding:12px 16px;font-family:'Inter',sans-serif;font-size:13px;color:#006e2a;display:flex;align-items:center;gap:8px;">
+        <svg width="15" height="15" fill="currentColor" viewBox="0 0 20 20" style="flex-shrink:0;">
           <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
         </svg>
         {{ successMsg() }}
       </div>
     }
 
-    <!-- Search -->
-    <div class="mb-4">
-      <div class="relative max-w-md">
-        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0" />
+    <!-- ── Buscador ──────────────────────────────────────────── -->
+    <div style="margin-bottom:20px;max-width:380px;">
+      <div style="position:relative;">
+        <svg style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--on-surface-subtle,#9a9db8);"
+          width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/>
         </svg>
-        <input
-          type="text"
+        <input type="text"
           placeholder="Buscar empresas..."
           [value]="searchQuery()"
           (input)="onSearch($event)"
-          class="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+          style="
+            width:100%;padding:10px 14px 10px 38px;
+            background:var(--surface-lowest,#fff);
+            border:none;border-radius:10px;
+            font-family:'Inter',sans-serif;font-size:13px;color:var(--on-surface,#1a1c2e);
+            outline:none;
+            box-shadow:var(--shadow-ambient,0 12px 32px rgba(25,28,30,0.06));
+            transition:box-shadow 200ms;
+          "
         />
       </div>
     </div>
 
-    <!-- Table -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-      <table class="w-full text-sm">
-        <thead>
-          <tr class="bg-gray-50 border-b border-gray-200">
-            <th class="text-left px-6 py-3 font-semibold text-gray-600">Empresa</th>
-            <th class="text-left px-6 py-3 font-semibold text-gray-600">Sector</th>
-            <th class="text-left px-6 py-3 font-semibold text-gray-600">Estado</th>
-            <th class="text-left px-6 py-3 font-semibold text-gray-600">Teléfono</th>
-            <th class="text-left px-6 py-3 font-semibold text-gray-600">Inicio relación</th>
-            <th class="px-6 py-3"></th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-100">
+    <!-- ── Tabla ─────────────────────────────────────────────── -->
+    <div style="background:var(--surface-lowest,#fff);border-radius:16px;box-shadow:var(--shadow-ambient,0 12px 32px rgba(25,28,30,0.06));overflow:hidden;">
+      <div class="tbl-scroll-outer">
+        <div class="tbl-scroll-inner">
 
-          <!-- Skeleton loaders -->
-          @if (loading()) {
-            @for (i of [1,2,3,4,5]; track i) {
-              <tr class="animate-pulse">
-                <td class="px-6 py-4"><div class="h-4 bg-gray-200 rounded w-40"></div></td>
-                <td class="px-6 py-4"><div class="h-4 bg-gray-200 rounded w-24"></div></td>
-                <td class="px-6 py-4"><div class="h-5 bg-gray-200 rounded-full w-16"></div></td>
-                <td class="px-6 py-4"><div class="h-4 bg-gray-200 rounded w-28"></div></td>
-                <td class="px-6 py-4"><div class="h-4 bg-gray-200 rounded w-20"></div></td>
-                <td class="px-6 py-4"><div class="h-4 bg-gray-200 rounded w-6"></div></td>
-              </tr>
-            }
-          }
+      <!-- Cabecera sin líneas -->
+      <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 48px;gap:8px;padding:14px 24px;background:var(--surface,#f4f6fb);">
+        @for (h of ['EMPRESA','SECTOR','ESTADO','TELÉFONO','INICIO RELACIÓN','']; track h) {
+          <span style="font-family:'Inter',sans-serif;font-size:10.5px;font-weight:600;color:var(--on-surface-subtle,#9a9db8);text-transform:uppercase;letter-spacing:0.07em;">{{ h }}</span>
+        }
+      </div>
 
-          <!-- Rows -->
-          @if (!loading()) {
-            @for (company of companies(); track company.id) {
-              <tr class="hover:bg-gray-50 transition-colors">
-                <td class="px-6 py-4">
-                  <div class="font-medium text-gray-900">{{ company.name }}</div>
-                  @if (company.website) {
-                    <a [href]="company.website" target="_blank" rel="noopener" class="text-xs text-indigo-500 hover:underline">{{ company.website }}</a>
-                  }
-                </td>
-                <td class="px-6 py-4 text-gray-600">{{ company.sector || '—' }}</td>
-                <td class="px-6 py-4">
-                  @switch (company.status) {
-                    @case ('active') {
-                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Activa</span>
-                    }
-                    @case ('prospect') {
-                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Prospecto</span>
-                    }
-                    @case ('inactive') {
-                      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">Inactiva</span>
-                    }
-                  }
-                </td>
-                <td class="px-6 py-4 text-gray-600">{{ company.phone || '—' }}</td>
-                <td class="px-6 py-4 text-gray-600">
-                  {{ company.relation_start_date ? (company.relation_start_date | date:'dd/MM/yyyy') : '—' }}
-                </td>
-                <td class="px-6 py-4 text-right">
-                  <button
-                    (click)="deleteCompany(company.id)"
-                    class="text-gray-400 hover:text-red-500 transition-colors"
-                    title="Eliminar empresa"
-                  >
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
-                </td>
-              </tr>
-            }
+      <!-- Skeletons -->
+      @if (loading()) {
+        @for (i of [1,2,3,4,5]; track i) {
+          <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 48px;gap:8px;padding:16px 24px;animation:pulse 1.5s ease-in-out infinite;" [style.background]="i % 2 === 0 ? 'var(--surface,#f4f6fb)' : 'transparent'">
+            <div style="height:14px;background:var(--surface-low,#edf0f8);border-radius:6px;width:140px;"></div>
+            <div style="height:14px;background:var(--surface-low,#edf0f8);border-radius:6px;width:80px;"></div>
+            <div style="height:20px;background:var(--surface-low,#edf0f8);border-radius:999px;width:70px;"></div>
+            <div style="height:14px;background:var(--surface-low,#edf0f8);border-radius:6px;width:100px;"></div>
+            <div style="height:14px;background:var(--surface-low,#edf0f8);border-radius:6px;width:80px;"></div>
+            <div style="height:14px;background:var(--surface-low,#edf0f8);border-radius:6px;width:24px;"></div>
+          </div>
+        }
+      }
 
-            <!-- Empty state -->
-            @if (companies().length === 0) {
-              <tr>
-                <td colspan="6" class="px-6 py-16 text-center">
-                  <svg class="mx-auto w-12 h-12 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                  </svg>
-                  <p class="text-gray-500 font-medium">No hay empresas</p>
-                  <p class="text-gray-400 text-xs mt-1">Crea tu primera empresa pulsando "Nueva Empresa"</p>
-                </td>
-              </tr>
-            }
-          }
+      <!-- Filas de datos -->
+      @if (!loading()) {
+        @for (company of companies(); track company.id; let odd = $odd) {
+          <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 48px;gap:8px;align-items:center;padding:15px 24px;transition:background 200ms;"
+            [style.background]="odd ? 'var(--surface,#f4f6fb)' : 'transparent'"
+            onmouseover="this.style.background='var(--surface-low,#edf0f8)'"
+            onmouseout="this.style.background=''">
 
-        </tbody>
-      </table>
+            <!-- Nombre + web -->
+            <div>
+              <p style="font-family:'Inter',sans-serif;font-size:13.5px;font-weight:600;color:var(--on-surface,#1a1c2e);margin:0 0 2px;">{{ company.name }}</p>
+              @if (company.website) {
+                <a [href]="company.website" target="_blank" rel="noopener"
+                  style="font-family:'Inter',sans-serif;font-size:11px;color:var(--clr-primary-deep,#00696b);text-decoration:none;">
+                  {{ company.website }}
+                </a>
+              }
+            </div>
 
-      <!-- Pagination info -->
+            <!-- Sector -->
+            <span style="font-family:'Inter',sans-serif;font-size:13px;color:var(--on-surface-variant,#5c5f7a);">{{ company.sector || '—' }}</span>
+
+            <!-- Estado badge -->
+            <span>
+              <span [style]="'font-family:Inter,sans-serif;font-size:11px;font-weight:600;padding:4px 10px;border-radius:999px;' + statusStyle(company.status)">
+                {{ statusLabel(company.status) }}
+              </span>
+            </span>
+
+            <!-- Teléfono -->
+            <span style="font-family:'Inter',sans-serif;font-size:13px;color:var(--on-surface-variant,#5c5f7a);">{{ company.phone || '—' }}</span>
+
+            <!-- Inicio relación -->
+            <span style="font-family:'Inter',sans-serif;font-size:13px;color:var(--on-surface-variant,#5c5f7a);">
+              {{ company.relation_start_date ? (company.relation_start_date | date:'dd/MM/yyyy') : '—' }}
+            </span>
+
+            <!-- Eliminar -->
+            <button (click)="deleteCompany(company.id)"
+              style="background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--on-surface-subtle,#9a9db8);transition:color 200ms,background 200ms;"
+              onmouseover="this.style.color='#b3261e';this.style.background='#fce8e6'"
+              onmouseout="this.style.color='var(--on-surface-subtle,#9a9db8)';this.style.background='none'"
+              title="Eliminar empresa">
+              <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+              </svg>
+            </button>
+          </div>
+        }
+
+        <!-- Empty state -->
+        @if (companies().length === 0) {
+          <div style="padding:64px 24px;text-align:center;">
+            <svg style="display:block;margin:0 auto 14px;" width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="var(--on-surface-subtle,#9a9db8)" stroke-width="1.2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+            </svg>
+            <p style="font-family:'Manrope',sans-serif;font-size:15px;font-weight:600;color:var(--on-surface-variant,#5c5f7a);margin:0 0 4px;">Sin empresas aún</p>
+            <p style="font-family:'Inter',sans-serif;font-size:12.5px;color:var(--on-surface-subtle,#9a9db8);margin:0;">Crea tu primera empresa con el botón "Nueva Empresa"</p>
+          </div>
+        }
+      }
+
+        </div><!-- tbl-scroll-inner -->
+      </div><!-- tbl-scroll-outer -->
+
+      <!-- Footer con total -->
       @if (!loading() && total() > 0) {
-        <div class="px-6 py-3 border-t border-gray-100 text-xs text-gray-500">
+        <div style="padding:12px 24px;background:var(--surface,#f4f6fb);font-family:'Inter',sans-serif;font-size:11.5px;color:var(--on-surface-subtle,#9a9db8);">
           Mostrando {{ companies().length }} de {{ total() }} empresas
         </div>
       }
     </div>
+
   </main>
 </div>
 
-<!-- Modal: Nueva Empresa -->
+<!-- ── Modal: Nueva Empresa ──────────────────────────────── -->
 @if (showModal()) {
-  <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
-    <!-- Backdrop -->
-    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" (click)="closeModal()"></div>
+  <div style="position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:16px;">
 
-    <!-- Panel -->
-    <div class="relative bg-white rounded-2xl shadow-xl w-full max-w-lg p-6 z-10">
-      <div class="flex items-center justify-between mb-5">
-        <h2 class="text-lg font-semibold text-gray-900">Nueva Empresa</h2>
-        <button (click)="closeModal()" class="text-gray-400 hover:text-gray-600">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+    <!-- Backdrop glassmorphism -->
+    <div style="position:absolute;inset:0;background:rgba(13,19,64,0.45);backdrop-filter:blur(12px);"
+      (click)="closeModal()"></div>
+
+    <!-- Card modal -->
+    <div style="
+      position:relative;z-index:10;
+      background:var(--surface-lowest,#fff);
+      border-radius:20px;
+      width:100%;max-width:480px;
+      box-shadow:0 24px 64px rgba(13,19,64,0.18);
+      overflow:hidden;
+    ">
+      <!-- Cabecera modal -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:22px 26px 18px;">
+        <h2 style="font-family:'Manrope',sans-serif;font-size:18px;font-weight:800;color:var(--on-surface,#1a1c2e);letter-spacing:-0.02em;margin:0;">
+          Nueva Empresa
+        </h2>
+        <button (click)="closeModal()"
+          style="width:32px;height:32px;border-radius:8px;border:none;background:var(--surface,#f4f6fb);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--on-surface-variant,#5c5f7a);">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
           </svg>
         </button>
       </div>
 
-      <form (ngSubmit)="submitCreate()" class="space-y-4">
+      <!-- Separador tonal (no línea) -->
+      <div style="height:1px;background:rgba(92,95,122,0.08);margin:0 26px;"></div>
+
+      <form (ngSubmit)="submitCreate()" style="padding:22px 26px;display:flex;flex-direction:column;gap:16px;">
 
         <!-- Nombre -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">
-            Nombre <span class="text-red-500">*</span>
+          <label style="display:block;font-family:'Inter',sans-serif;font-size:11.5px;font-weight:600;color:var(--on-surface-variant,#5c5f7a);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">
+            Nombre *
           </label>
-          <input
-            type="text"
+          <input type="text"
             [value]="form().name"
             (input)="patchForm('name', $any($event.target).value)"
             placeholder="Acme Corp"
             required
-            class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            style="width:100%;padding:10px 14px;background:var(--surface,#f4f6fb);border:none;border-radius:10px;font-family:'Inter',sans-serif;font-size:13.5px;color:var(--on-surface,#1a1c2e);outline:none;transition:box-shadow 200ms;"
+            onfocus="this.style.boxShadow='0 0 0 2px #00ced1'"
+            onblur="this.style.boxShadow='none'"
           />
         </div>
 
         <!-- Sector + Estado -->
-        <div class="grid grid-cols-2 gap-3">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Sector</label>
-            <select
-              [value]="form().sector"
-              (change)="patchForm('sector', $any($event.target).value)"
-              class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
-            >
+            <label style="display:block;font-family:'Inter',sans-serif;font-size:11.5px;font-weight:600;color:var(--on-surface-variant,#5c5f7a);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Sector</label>
+            <select [value]="form().sector" (change)="patchForm('sector', $any($event.target).value)"
+              style="width:100%;padding:10px 14px;background:var(--surface,#f4f6fb);border:none;border-radius:10px;font-family:'Inter',sans-serif;font-size:13px;color:var(--on-surface,#1a1c2e);outline:none;cursor:pointer;">
               <option value="">— Seleccionar —</option>
-              <option value="Tecnología">Tecnología</option>
-              <option value="Finanzas">Finanzas</option>
-              <option value="Salud">Salud</option>
-              <option value="Educación">Educación</option>
-              <option value="Retail">Retail</option>
-              <option value="Manufactura">Manufactura</option>
-              <option value="Consultoría">Consultoría</option>
-              <option value="Otro">Otro</option>
+              @for (s of sectors; track s) { <option [value]="s">{{ s }}</option> }
             </select>
           </div>
           <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
-            <select
-              [value]="form().status"
-              (change)="patchForm('status', $any($event.target).value)"
-              class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
-            >
+            <label style="display:block;font-family:'Inter',sans-serif;font-size:11.5px;font-weight:600;color:var(--on-surface-variant,#5c5f7a);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Estado</label>
+            <select [value]="form().status" (change)="patchForm('status', $any($event.target).value)"
+              style="width:100%;padding:10px 14px;background:var(--surface,#f4f6fb);border:none;border-radius:10px;font-family:'Inter',sans-serif;font-size:13px;color:var(--on-surface,#1a1c2e);outline:none;cursor:pointer;">
               <option value="prospect">Prospecto</option>
               <option value="active">Activa</option>
               <option value="inactive">Inactiva</option>
@@ -221,53 +250,53 @@
 
         <!-- Website -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Sitio web</label>
-          <input
-            type="url"
+          <label style="display:block;font-family:'Inter',sans-serif;font-size:11.5px;font-weight:600;color:var(--on-surface-variant,#5c5f7a);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Sitio web</label>
+          <input type="url"
             [value]="form().website"
             (input)="patchForm('website', $any($event.target).value)"
             placeholder="https://empresa.com"
-            class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            style="width:100%;padding:10px 14px;background:var(--surface,#f4f6fb);border:none;border-radius:10px;font-family:'Inter',sans-serif;font-size:13.5px;color:var(--on-surface,#1a1c2e);outline:none;transition:box-shadow 200ms;"
+            onfocus="this.style.boxShadow='0 0 0 2px #00ced1'"
+            onblur="this.style.boxShadow='none'"
           />
         </div>
 
-        <!-- Teléfono -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Teléfono</label>
-          <input
-            type="tel"
-            [value]="form().phone"
-            (input)="patchForm('phone', $any($event.target).value)"
-            placeholder="+34 600 000 000"
-            class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          />
-        </div>
-
-        <!-- Fecha inicio relación -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">Inicio de relación</label>
-          <input
-            type="date"
-            [value]="form().relation_start_date ?? ''"
-            (input)="patchForm('relation_start_date', $any($event.target).value || null)"
-            class="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          />
+        <!-- Teléfono + Fecha -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div>
+            <label style="display:block;font-family:'Inter',sans-serif;font-size:11.5px;font-weight:600;color:var(--on-surface-variant,#5c5f7a);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Teléfono</label>
+            <input type="tel"
+              [value]="form().phone"
+              (input)="patchForm('phone', $any($event.target).value)"
+              placeholder="+34 600 000 000"
+              style="width:100%;padding:10px 14px;background:var(--surface,#f4f6fb);border:none;border-radius:10px;font-family:'Inter',sans-serif;font-size:13.5px;color:var(--on-surface,#1a1c2e);outline:none;transition:box-shadow 200ms;"
+              onfocus="this.style.boxShadow='0 0 0 2px #00ced1'"
+              onblur="this.style.boxShadow='none'"
+            />
+          </div>
+          <div>
+            <label style="display:block;font-family:'Inter',sans-serif;font-size:11.5px;font-weight:600;color:var(--on-surface-variant,#5c5f7a);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Inicio relación</label>
+            <input type="date"
+              [value]="form().relation_start_date ?? ''"
+              (input)="patchForm('relation_start_date', $any($event.target).value || null)"
+              style="width:100%;padding:10px 14px;background:var(--surface,#f4f6fb);border:none;border-radius:10px;font-family:'Inter',sans-serif;font-size:13px;color:var(--on-surface,#1a1c2e);outline:none;transition:box-shadow 200ms;"
+              onfocus="this.style.boxShadow='0 0 0 2px #00ced1'"
+              onblur="this.style.boxShadow='none'"
+            />
+          </div>
         </div>
 
         <!-- Acciones -->
-        <div class="flex justify-end gap-3 pt-2">
-          <button
-            type="button"
-            (click)="closeModal()"
-            class="px-4 py-2 text-sm text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-          >
+        <div style="display:flex;justify-content:flex-end;gap:10px;padding-top:4px;">
+          <button type="button" (click)="closeModal()"
+            style="padding:10px 18px;background:var(--surface,#f4f6fb);border:none;border-radius:10px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;color:var(--on-surface-variant,#5c5f7a);cursor:pointer;transition:background 200ms;"
+            onmouseover="this.style.background='var(--surface-low,#edf0f8)'"
+            onmouseout="this.style.background='var(--surface,#f4f6fb)'">
             Cancelar
           </button>
-          <button
-            type="submit"
-            [disabled]="saving()"
-            class="px-4 py-2 text-sm font-medium bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
+          <button type="submit" [disabled]="saving()"
+            style="padding:10px 22px;background:linear-gradient(135deg,#00ced1 0%,#00969a 100%);border:none;border-radius:10px;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;color:#fff;cursor:pointer;box-shadow:0 4px 14px rgba(0,206,209,0.28);transition:opacity 200ms;"
+            [style.opacity]="saving() ? '0.6' : '1'">
             {{ saving() ? 'Guardando...' : 'Crear empresa' }}
           </button>
         </div>

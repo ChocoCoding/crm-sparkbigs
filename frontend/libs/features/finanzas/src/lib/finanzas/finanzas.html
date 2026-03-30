@@ -1,7 +1,376 @@
-<div class="flex min-h-screen bg-gray-50">
+<div style="display:flex;min-height:100vh;background:var(--surface,#f4f6fb);">
   <app-sidebar />
-  <main class="flex-1 p-8">
-    <h1 class="text-2xl font-bold text-gray-900 mb-2">{{ 'NAV.finanzas' | translate | uppercase }}</h1>
-    <p class="text-gray-500 text-sm">Módulo en construcción.</p>
+
+  <main class="page-main" style="flex:1;overflow:auto;min-width:0;">
+
+    <!-- ── Header ───────────────────────────────────────────── -->
+    <div class="page-header">
+      <div>
+        <h1 style="font-family:'Manrope',sans-serif;font-size:26px;font-weight:800;color:var(--on-surface,#1a1c2e);letter-spacing:-0.03em;margin:0 0 4px;">
+          Finanzas
+        </h1>
+        <p style="font-family:'Inter',sans-serif;font-size:13px;color:var(--on-surface-subtle,#9a9db8);margin:0;">
+          Gestión de suscripciones y licencias por empresa
+        </p>
+      </div>
+      <button (click)="openCreate()" style="
+        display:inline-flex;align-items:center;gap:8px;
+        padding:10px 20px;
+        background:linear-gradient(135deg,#00ced1 0%,#00969a 100%);
+        color:#fff;
+        font-family:'Inter',sans-serif;font-size:13.5px;font-weight:600;
+        border:none;border-radius:10px;cursor:pointer;
+        box-shadow:0 4px 14px rgba(0,206,209,0.28);
+        transition:box-shadow 200ms,transform 200ms;
+      "
+      onmouseover="this.style.boxShadow='0 6px 20px rgba(0,206,209,0.42)';this.style.transform='translateY(-1px)'"
+      onmouseout="this.style.boxShadow='0 4px 14px rgba(0,206,209,0.28)';this.style.transform='translateY(0)'">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+        </svg>
+        Nueva Suscripción
+      </button>
+    </div>
+
+    <!-- ── KPI Cards ─────────────────────────────────────────── -->
+    <div class="kpi-grid-3">
+
+      <!-- MRR -->
+      <div style="background:var(--surface-lowest,#fff);border-radius:16px;padding:22px 24px;box-shadow:var(--shadow-ambient,0 12px 32px rgba(25,28,30,0.06));">
+        <p style="font-family:'Inter',sans-serif;font-size:10.5px;font-weight:600;color:var(--on-surface-subtle,#9a9db8);text-transform:uppercase;letter-spacing:0.07em;margin:0 0 8px;">MRR Activo</p>
+        <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:4px;">
+          <span style="font-family:'Manrope',sans-serif;font-size:28px;font-weight:800;color:var(--on-surface,#1a1c2e);letter-spacing:-0.03em;">
+            {{ totalMRR() | number:'1.0-0' }}
+          </span>
+          <span style="font-family:'Inter',sans-serif;font-size:12px;color:var(--on-surface-subtle,#9a9db8);">EUR</span>
+        </div>
+        <p style="font-family:'Inter',sans-serif;font-size:11.5px;color:var(--on-surface-subtle,#9a9db8);margin:0;">Ingresos mensuales recurrentes</p>
+      </div>
+
+      <!-- ARR -->
+      <div style="background:var(--surface-lowest,#fff);border-radius:16px;padding:22px 24px;box-shadow:var(--shadow-ambient,0 12px 32px rgba(25,28,30,0.06));">
+        <p style="font-family:'Inter',sans-serif;font-size:10.5px;font-weight:600;color:var(--on-surface-subtle,#9a9db8);text-transform:uppercase;letter-spacing:0.07em;margin:0 0 8px;">ARR Activo</p>
+        <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:4px;">
+          <span style="font-family:'Manrope',sans-serif;font-size:28px;font-weight:800;color:var(--on-surface,#1a1c2e);letter-spacing:-0.03em;">
+            {{ totalARR() | number:'1.0-0' }}
+          </span>
+          <span style="font-family:'Inter',sans-serif;font-size:12px;color:var(--on-surface-subtle,#9a9db8);">EUR</span>
+        </div>
+        <p style="font-family:'Inter',sans-serif;font-size:11.5px;color:var(--on-surface-subtle,#9a9db8);margin:0;">Ingresos anuales recurrentes</p>
+      </div>
+
+      <!-- Activas -->
+      <div style="background:var(--surface-lowest,#fff);border-radius:16px;padding:22px 24px;box-shadow:var(--shadow-ambient,0 12px 32px rgba(25,28,30,0.06));">
+        <p style="font-family:'Inter',sans-serif;font-size:10.5px;font-weight:600;color:var(--on-surface-subtle,#9a9db8);text-transform:uppercase;letter-spacing:0.07em;margin:0 0 8px;">Suscripciones Activas</p>
+        <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:4px;">
+          <span style="font-family:'Manrope',sans-serif;font-size:28px;font-weight:800;color:#00ced1;letter-spacing:-0.03em;">
+            {{ activeCount() }}
+          </span>
+        </div>
+        <p style="font-family:'Inter',sans-serif;font-size:11.5px;color:var(--on-surface-subtle,#9a9db8);margin:0;">
+          De {{ subscriptions().length }} totales
+        </p>
+      </div>
+    </div>
+
+    <!-- ── Alerta de vencimientos ────────────────────────────── -->
+    @if (expiring().length > 0) {
+      <div style="margin-bottom:20px;background:#fff8e1;border-radius:12px;padding:14px 18px;display:flex;flex-direction:column;gap:10px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="#b45309" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+          </svg>
+          <span style="font-family:'Inter',sans-serif;font-size:13px;font-weight:600;color:#b45309;">
+            {{ expiring().length }} suscripción(es) vencen en los próximos 30 días
+          </span>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+          @for (s of expiring(); track s.id) {
+            <span style="font-family:'Inter',sans-serif;font-size:11px;font-weight:600;padding:4px 12px;border-radius:999px;background:#fef3c7;color:#92400e;">
+              {{ s.name }} — {{ daysUntil(s.renewal_date) }} días
+            </span>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- ── Error ─────────────────────────────────────────────── -->
+    @if (errorMsg()) {
+      <div style="margin-bottom:16px;background:#fce8e6;border-radius:10px;padding:12px 16px;font-family:'Inter',sans-serif;font-size:13px;color:#b3261e;display:flex;align-items:center;gap:8px;">
+        <svg width="15" height="15" fill="currentColor" viewBox="0 0 20 20" style="flex-shrink:0;">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+        </svg>
+        {{ errorMsg() }}
+      </div>
+    }
+
+    <!-- ── Tabla ─────────────────────────────────────────────── -->
+    <div style="background:var(--surface-lowest,#fff);border-radius:16px;box-shadow:var(--shadow-ambient,0 12px 32px rgba(25,28,30,0.06));overflow:hidden;">
+      <div class="tbl-scroll-outer">
+        <div class="tbl-scroll-inner-lg">
+
+      <!-- Cabecera -->
+      <div style="display:grid;grid-template-columns:1.8fr 1.2fr 1fr 1fr 0.8fr 1fr 0.9fr 72px;gap:8px;padding:14px 24px;background:var(--surface,#f4f6fb);">
+        @for (h of ['NOMBRE','EMPRESA','PLAN','IMPORTE','CICLO','RENOVACIÓN','ESTADO','']; track h) {
+          <span style="font-family:'Inter',sans-serif;font-size:10.5px;font-weight:600;color:var(--on-surface-subtle,#9a9db8);text-transform:uppercase;letter-spacing:0.07em;">{{ h }}</span>
+        }
+      </div>
+
+      <!-- Skeletons -->
+      @if (loading()) {
+        @for (i of [1,2,3,4]; track i) {
+          <div style="display:grid;grid-template-columns:1.8fr 1.2fr 1fr 1fr 0.8fr 1fr 0.9fr 72px;gap:8px;padding:16px 24px;" [style.background]="i % 2 === 0 ? 'var(--surface,#f4f6fb)' : 'transparent'">
+            @for (j of [1,2,3,4,5,6]; track j) {
+              <div style="height:14px;background:var(--surface-low,#edf0f8);border-radius:6px;"></div>
+            }
+            <div style="height:20px;background:var(--surface-low,#edf0f8);border-radius:999px;width:70px;"></div>
+            <div></div>
+          </div>
+        }
+      }
+
+      <!-- Datos -->
+      @if (!loading()) {
+
+        @if (subscriptions().length === 0) {
+          <div style="padding:64px 24px;text-align:center;">
+            <svg style="display:block;margin:0 auto 14px;" width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="var(--on-surface-subtle,#9a9db8)" stroke-width="1.2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+            </svg>
+            <p style="font-family:'Manrope',sans-serif;font-size:15px;font-weight:600;color:var(--on-surface-variant,#5c5f7a);margin:0 0 4px;">Sin suscripciones aún</p>
+            <p style="font-family:'Inter',sans-serif;font-size:12.5px;color:var(--on-surface-subtle,#9a9db8);margin:0;">Crea tu primera suscripción con el botón "Nueva Suscripción"</p>
+          </div>
+        }
+
+        @for (s of subscriptions(); track s.id; let odd = $odd) {
+          <div style="display:grid;grid-template-columns:1.8fr 1.2fr 1fr 1fr 0.8fr 1fr 0.9fr 72px;gap:8px;align-items:center;padding:14px 24px;transition:background 200ms;"
+            [style.background]="odd ? 'var(--surface,#f4f6fb)' : 'transparent'"
+            onmouseover="this.style.background='var(--surface-low,#edf0f8)'"
+            onmouseout="this.style.background=''">
+
+            <!-- Nombre -->
+            <span style="font-family:'Inter',sans-serif;font-size:13.5px;font-weight:600;color:var(--on-surface,#1a1c2e);">{{ s.name }}</span>
+
+            <!-- Empresa -->
+            <span style="font-family:'Inter',sans-serif;font-size:13px;color:var(--on-surface-variant,#5c5f7a);">{{ s.company?.name ?? '—' }}</span>
+
+            <!-- Plan -->
+            <span style="font-family:'Inter',sans-serif;font-size:13px;color:var(--on-surface-variant,#5c5f7a);">{{ s.plan_type || '—' }}</span>
+
+            <!-- Importe -->
+            <span style="font-family:'Manrope',sans-serif;font-size:14px;font-weight:700;color:var(--on-surface,#1a1c2e);">
+              {{ s.amount | number:'1.2-2' }} <span style="font-weight:400;font-size:11px;color:var(--on-surface-subtle,#9a9db8);">{{ s.currency }}</span>
+            </span>
+
+            <!-- Ciclo -->
+            <span style="font-family:'Inter',sans-serif;font-size:12px;color:var(--on-surface-subtle,#9a9db8);">{{ cycleLabel(s.billing_cycle) }}</span>
+
+            <!-- Renovación -->
+            @if (s.renewal_date) {
+              <span [style]="'font-family:Inter,sans-serif;font-size:13px;' + (daysUntil(s.renewal_date) <= 30 ? 'color:#b45309;font-weight:600;' : 'color:var(--on-surface-variant,#5c5f7a);')">
+                {{ s.renewal_date | date:'dd/MM/yyyy' }}
+              </span>
+            } @else {
+              <span style="font-family:'Inter',sans-serif;font-size:13px;color:var(--on-surface-subtle,#9a9db8);">—</span>
+            }
+
+            <!-- Estado badge -->
+            <span style="font-family:'Inter',sans-serif;font-size:11px;font-weight:600;padding:4px 10px;border-radius:999px;"
+              [style]="'font-family:Inter,sans-serif;font-size:11px;font-weight:600;padding:4px 10px;border-radius:999px;' + statusColor(s.status)">
+              {{ statusLabel(s.status) }}
+            </span>
+
+            <!-- Acciones -->
+            <div style="display:flex;align-items:center;gap:4px;">
+              <button (click)="openEdit(s)"
+                style="background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;display:flex;align-items:center;color:var(--on-surface-subtle,#9a9db8);transition:color 200ms,background 200ms;"
+                onmouseover="this.style.color='#4c56af';this.style.background='#e8eaf6'"
+                onmouseout="this.style.color='var(--on-surface-subtle,#9a9db8)';this.style.background='none'"
+                title="Editar">
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                </svg>
+              </button>
+              <button (click)="delete(s.id)"
+                style="background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;display:flex;align-items:center;color:var(--on-surface-subtle,#9a9db8);transition:color 200ms,background 200ms;"
+                onmouseover="this.style.color='#b3261e';this.style.background='#fce8e6'"
+                onmouseout="this.style.color='var(--on-surface-subtle,#9a9db8)';this.style.background='none'"
+                title="Eliminar">
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+              </button>
+            </div>
+
+          </div>
+        }
+      }
+
+        </div><!-- tbl-scroll-inner-lg -->
+      </div><!-- tbl-scroll-outer -->
+
+      <!-- Footer total -->
+      <div style="padding:12px 24px;background:var(--surface,#f4f6fb);font-family:'Inter',sans-serif;font-size:11.5px;color:var(--on-surface-subtle,#9a9db8);">
+        {{ subscriptions().length }} suscripción(es) en total
+      </div>
+    </div>
+
   </main>
 </div>
+
+<!-- ── Modal: Nueva / Editar Suscripción ─────────────────── -->
+@if (showModal()) {
+  <div style="position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:16px;">
+
+    <!-- Backdrop glassmorphism -->
+    <div style="position:absolute;inset:0;background:rgba(13,19,64,0.45);backdrop-filter:blur(12px);"
+      (click)="showModal.set(false)"></div>
+
+    <!-- Card modal -->
+    <div style="
+      position:relative;z-index:10;
+      background:var(--surface-lowest,#fff);
+      border-radius:20px;
+      width:100%;max-width:520px;
+      box-shadow:0 24px 64px rgba(13,19,64,0.18);
+      overflow:hidden;
+      max-height:90vh;
+    ">
+      <!-- Cabecera -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:22px 26px 18px;">
+        <h2 style="font-family:'Manrope',sans-serif;font-size:18px;font-weight:800;color:var(--on-surface,#1a1c2e);letter-spacing:-0.02em;margin:0;">
+          {{ editTarget() ? 'Editar Suscripción' : 'Nueva Suscripción' }}
+        </h2>
+        <button (click)="showModal.set(false)"
+          style="width:32px;height:32px;border-radius:8px;border:none;background:var(--surface,#f4f6fb);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--on-surface-variant,#5c5f7a);">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <div style="height:1px;background:rgba(92,95,122,0.08);margin:0 26px;"></div>
+
+      <div style="padding:22px 26px;display:flex;flex-direction:column;gap:16px;overflow-y:auto;max-height:calc(90vh - 140px);">
+
+        <!-- Nombre -->
+        <div>
+          <label style="display:block;font-family:'Inter',sans-serif;font-size:11.5px;font-weight:600;color:var(--on-surface-variant,#5c5f7a);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Nombre *</label>
+          <input [value]="form().name" (input)="patchForm('name', $any($event.target).value)"
+            placeholder="Ej: Salesforce Enterprise"
+            style="width:100%;padding:10px 14px;background:var(--surface,#f4f6fb);border:none;border-radius:10px;font-family:'Inter',sans-serif;font-size:13.5px;color:var(--on-surface,#1a1c2e);outline:none;transition:box-shadow 200ms;box-sizing:border-box;"
+            onfocus="this.style.boxShadow='0 0 0 2px #00ced1'"
+            onblur="this.style.boxShadow='none'" />
+        </div>
+
+        <!-- Empresa -->
+        <div>
+          <label style="display:block;font-family:'Inter',sans-serif;font-size:11.5px;font-weight:600;color:var(--on-surface-variant,#5c5f7a);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Empresa *</label>
+          <select [value]="form().company_id" (change)="patchForm('company_id', +$any($event.target).value)"
+            style="width:100%;padding:10px 14px;background:var(--surface,#f4f6fb);border:none;border-radius:10px;font-family:'Inter',sans-serif;font-size:13px;color:var(--on-surface,#1a1c2e);outline:none;cursor:pointer;box-sizing:border-box;">
+            <option value="0" disabled>Selecciona una empresa</option>
+            @for (c of companies(); track c.id) {
+              <option [value]="c.id">{{ c.name }}</option>
+            }
+          </select>
+        </div>
+
+        <!-- Plan + Estado -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div>
+            <label style="display:block;font-family:'Inter',sans-serif;font-size:11.5px;font-weight:600;color:var(--on-surface-variant,#5c5f7a);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Tipo de Plan</label>
+            <input [value]="form().plan_type" (input)="patchForm('plan_type', $any($event.target).value)"
+              placeholder="Ej: Pro, Enterprise"
+              style="width:100%;padding:10px 14px;background:var(--surface,#f4f6fb);border:none;border-radius:10px;font-family:'Inter',sans-serif;font-size:13px;color:var(--on-surface,#1a1c2e);outline:none;transition:box-shadow 200ms;box-sizing:border-box;"
+              onfocus="this.style.boxShadow='0 0 0 2px #00ced1'"
+              onblur="this.style.boxShadow='none'" />
+          </div>
+          <div>
+            <label style="display:block;font-family:'Inter',sans-serif;font-size:11.5px;font-weight:600;color:var(--on-surface-variant,#5c5f7a);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Estado</label>
+            <select [value]="form().status" (change)="patchForm('status', $any($event.target).value)"
+              style="width:100%;padding:10px 14px;background:var(--surface,#f4f6fb);border:none;border-radius:10px;font-family:'Inter',sans-serif;font-size:13px;color:var(--on-surface,#1a1c2e);outline:none;cursor:pointer;box-sizing:border-box;">
+              <option value="active">Activa</option>
+              <option value="paused">Pausada</option>
+              <option value="cancelled">Cancelada</option>
+              <option value="expired">Expirada</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Importe + Moneda -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div>
+            <label style="display:block;font-family:'Inter',sans-serif;font-size:11.5px;font-weight:600;color:var(--on-surface-variant,#5c5f7a);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Importe *</label>
+            <input type="number" [value]="form().amount" (input)="patchForm('amount', +$any($event.target).value)"
+              min="0" step="0.01"
+              style="width:100%;padding:10px 14px;background:var(--surface,#f4f6fb);border:none;border-radius:10px;font-family:'Inter',sans-serif;font-size:13.5px;color:var(--on-surface,#1a1c2e);outline:none;transition:box-shadow 200ms;box-sizing:border-box;"
+              onfocus="this.style.boxShadow='0 0 0 2px #00ced1'"
+              onblur="this.style.boxShadow='none'" />
+          </div>
+          <div>
+            <label style="display:block;font-family:'Inter',sans-serif;font-size:11.5px;font-weight:600;color:var(--on-surface-variant,#5c5f7a);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Moneda</label>
+            <select [value]="form().currency" (change)="patchForm('currency', $any($event.target).value)"
+              style="width:100%;padding:10px 14px;background:var(--surface,#f4f6fb);border:none;border-radius:10px;font-family:'Inter',sans-serif;font-size:13px;color:var(--on-surface,#1a1c2e);outline:none;cursor:pointer;box-sizing:border-box;">
+              <option value="EUR">EUR</option>
+              <option value="USD">USD</option>
+              <option value="GBP">GBP</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Ciclo de facturación -->
+        <div>
+          <label style="display:block;font-family:'Inter',sans-serif;font-size:11.5px;font-weight:600;color:var(--on-surface-variant,#5c5f7a);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Ciclo de Facturación</label>
+          <select [value]="form().billing_cycle" (change)="patchForm('billing_cycle', $any($event.target).value)"
+            style="width:100%;padding:10px 14px;background:var(--surface,#f4f6fb);border:none;border-radius:10px;font-family:'Inter',sans-serif;font-size:13px;color:var(--on-surface,#1a1c2e);outline:none;cursor:pointer;box-sizing:border-box;">
+            <option value="monthly">Mensual</option>
+            <option value="annual">Anual</option>
+            <option value="one_time">Pago único</option>
+          </select>
+        </div>
+
+        <!-- Fechas -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div>
+            <label style="display:block;font-family:'Inter',sans-serif;font-size:11.5px;font-weight:600;color:var(--on-surface-variant,#5c5f7a);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Fecha Inicio *</label>
+            <input type="date" [value]="form().start_date" (change)="patchForm('start_date', $any($event.target).value)"
+              style="width:100%;padding:10px 14px;background:var(--surface,#f4f6fb);border:none;border-radius:10px;font-family:'Inter',sans-serif;font-size:13px;color:var(--on-surface,#1a1c2e);outline:none;transition:box-shadow 200ms;box-sizing:border-box;"
+              onfocus="this.style.boxShadow='0 0 0 2px #00ced1'"
+              onblur="this.style.boxShadow='none'" />
+          </div>
+          <div>
+            <label style="display:block;font-family:'Inter',sans-serif;font-size:11.5px;font-weight:600;color:var(--on-surface-variant,#5c5f7a);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Próxima Renovación</label>
+            <input type="date" [value]="form().renewal_date ?? ''" (change)="patchForm('renewal_date', $any($event.target).value || null)"
+              style="width:100%;padding:10px 14px;background:var(--surface,#f4f6fb);border:none;border-radius:10px;font-family:'Inter',sans-serif;font-size:13px;color:var(--on-surface,#1a1c2e);outline:none;transition:box-shadow 200ms;box-sizing:border-box;"
+              onfocus="this.style.boxShadow='0 0 0 2px #00ced1'"
+              onblur="this.style.boxShadow='none'" />
+          </div>
+        </div>
+
+        <!-- Notas -->
+        <div>
+          <label style="display:block;font-family:'Inter',sans-serif;font-size:11.5px;font-weight:600;color:var(--on-surface-variant,#5c5f7a);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Notas</label>
+          <textarea [value]="form().notes" (input)="patchForm('notes', $any($event.target).value)"
+            rows="2" placeholder="Observaciones..."
+            style="width:100%;padding:10px 14px;background:var(--surface,#f4f6fb);border:none;border-radius:10px;font-family:'Inter',sans-serif;font-size:13px;color:var(--on-surface,#1a1c2e);outline:none;resize:none;transition:box-shadow 200ms;box-sizing:border-box;"
+            onfocus="this.style.boxShadow='0 0 0 2px #00ced1'"
+            onblur="this.style.boxShadow='none'"></textarea>
+        </div>
+
+      </div>
+
+      <!-- Acciones -->
+      <div style="display:flex;justify-content:flex-end;gap:10px;padding:16px 26px;background:var(--surface,#f4f6fb);">
+        <button (click)="showModal.set(false)"
+          style="padding:10px 18px;background:var(--surface-lowest,#fff);border:none;border-radius:10px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;color:var(--on-surface-variant,#5c5f7a);cursor:pointer;">
+          Cancelar
+        </button>
+        <button (click)="submit()" [disabled]="!form().name || !form().company_id"
+          style="padding:10px 22px;background:linear-gradient(135deg,#00ced1 0%,#00969a 100%);border:none;border-radius:10px;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;color:#fff;cursor:pointer;box-shadow:0 4px 14px rgba(0,206,209,0.28);"
+          [style.opacity]="(!form().name || !form().company_id) ? '0.5' : '1'">
+          {{ editTarget() ? 'Actualizar' : 'Crear' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

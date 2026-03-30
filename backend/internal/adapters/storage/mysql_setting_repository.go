@@ -23,19 +23,19 @@ func (r *mysqlSettingRepository) Upsert(setting *domain.Setting) error {
 
 func (r *mysqlSettingRepository) FindByUserID(userID uint) ([]domain.Setting, error) {
 	var settings []domain.Setting
-	err := r.db.Where("user_id = ?", userID).Order("category, key").Find(&settings).Error
+	err := r.db.Where("user_id = ?", userID).Order("category, `key`").Find(&settings).Error
 	return settings, err
 }
 
 func (r *mysqlSettingRepository) FindByCategory(userID uint, category string) ([]domain.Setting, error) {
 	var settings []domain.Setting
-	err := r.db.Where("user_id = ? AND category = ?", userID, category).Order("key").Find(&settings).Error
+	err := r.db.Where("user_id = ? AND category = ?", userID, category).Order("`key`").Find(&settings).Error
 	return settings, err
 }
 
 func (r *mysqlSettingRepository) FindByKey(userID uint, key string) (*domain.Setting, error) {
 	var setting domain.Setting
-	err := r.db.Where("user_id = ? AND key = ?", userID, key).First(&setting).Error
+	err := r.db.Where("user_id = ? AND `key` = ?", userID, key).First(&setting).Error
 	return &setting, err
 }
 
