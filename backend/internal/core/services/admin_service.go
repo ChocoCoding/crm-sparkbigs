@@ -68,10 +68,16 @@ func (s *adminService) ListUsers(offset, limit int) ([]domain.User, int64, error
 }
 
 func (s *adminService) UpdateUser(user *domain.User) error {
-	if _, err := s.userRepo.FindByID(user.ID); err != nil {
+	existing, err := s.userRepo.FindByID(user.ID)
+	if err != nil {
 		return ErrUserNotFound
 	}
-	return s.userRepo.Update(user)
+	// Aplicar solo los campos editables al registro completo cargado de la DB
+	// para evitar que GORM intente guardar timestamps con valor cero
+	existing.Name     = user.Name
+	existing.Role     = user.Role
+	existing.IsActive = user.IsActive
+	return s.userRepo.Update(existing)
 }
 
 func (s *adminService) DeactivateUser(id uint) error {

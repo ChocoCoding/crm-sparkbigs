@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { authGuard } from '@miapp/data-access';
+import { authGuard, adminGuard } from '@miapp/data-access';
 
 export const appRoutes: Routes = [
   // ── Pública ──────────────────────────────────────────────────
@@ -48,6 +48,15 @@ export const appRoutes: Routes = [
     loadComponent: () =>
       import('@miapp/features/configuracion').then(
         (m) => m.ConfiguracionComponent
+      ),
+  },
+
+  {
+    path: 'admin',
+    canActivate: [adminGuard],
+    loadComponent: () =>
+      import('@miapp/features/admin-panel').then(
+        (m) => m.AdminPanelComponent
       ),
   },
 
