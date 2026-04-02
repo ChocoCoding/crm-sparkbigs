@@ -1,122 +1,324 @@
-<div class="flex min-h-screen bg-gray-50">
+<div style="display:flex;min-height:100vh;background:var(--surface-lowest,#f4f6fc);">
   <app-sidebar />
 
-  <main class="flex-1 p-8 overflow-auto">
+  <main class="page-main">
 
     <!-- Header -->
-    <div class="flex items-center justify-between mb-8">
-      <h1 class="text-2xl font-bold text-gray-900">
-        {{ 'ADMIN.TITLE' | translate }}
-      </h1>
-      <span class="text-sm text-gray-500">
-        {{ 'COMMON.TOTAL' | translate }}: {{ total() }}
-      </span>
+    <div class="page-header">
+      <div>
+        <h1 style="font-family:'Manrope',sans-serif;font-size:1.6rem;font-weight:800;color:var(--on-surface,#1a1d3a);margin:0 0 4px;">
+          {{ 'ADMIN.TITLE' | translate }}
+        </h1>
+        <p style="font-size:.85rem;color:var(--on-surface-subtle,#9a9db8);margin:0;">
+          {{ total() }} {{ 'ADMIN.USERS' | translate | lowercase }}
+        </p>
+      </div>
+      <button
+        (click)="openCreate()"
+        style="display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:10px;border:none;cursor:pointer;font-weight:700;font-size:.85rem;background:linear-gradient(135deg,#4c56af,#00ced1);color:#fff;box-shadow:0 4px 14px rgba(76,86,175,.35);transition:opacity .2s;"
+        onmouseenter="this.style.opacity='.85'" onmouseleave="this.style.opacity='1'">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        {{ 'ADMIN.NEW_USER' | translate }}
+      </button>
     </div>
 
     <!-- Feedback -->
     @if (error()) {
-      <div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+      <div style="margin-bottom:16px;padding:14px 16px;border-radius:10px;background:#fce8e6;color:#b3261e;font-size:.85rem;display:flex;align-items:center;gap:10px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
         {{ error() }}
       </div>
     }
     @if (successMsg()) {
-      <div class="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700">
+      <div style="margin-bottom:16px;padding:14px 16px;border-radius:10px;background:#e8f5e9;color:#2e7d32;font-size:.85rem;display:flex;align-items:center;gap:10px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
         {{ successMsg() }}
       </div>
     }
 
-    <!-- Tabla de usuarios -->
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200">
-      <div class="px-6 py-4 border-b border-gray-100">
-        <h2 class="text-base font-semibold text-gray-800">
-          {{ 'ADMIN.USERS' | translate }}
-        </h2>
-      </div>
+    <!-- Search -->
+    <div style="margin-bottom:20px;position:relative;max-width:360px;">
+      <svg style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--on-surface-subtle,#9a9db8);" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input
+        type="text"
+        [value]="search()"
+        (input)="search.set($any($event.target).value)"
+        placeholder="Buscar usuarios..."
+        style="width:100%;padding:10px 12px 10px 36px;border-radius:10px;border:none;background:var(--surface,#fff);box-shadow:var(--shadow-ambient,0 1px 4px rgba(26,29,58,.06));font-size:.85rem;color:var(--on-surface,#1a1d3a);outline:none;box-sizing:border-box;" />
+    </div>
+
+    <!-- Tabla -->
+    <div style="background:var(--surface,#fff);border-radius:16px;box-shadow:var(--shadow-ambient,0 1px 4px rgba(26,29,58,.06));overflow:hidden;">
 
       @if (loading()) {
-        <div class="p-6 space-y-3">
+        <div style="padding:24px;display:flex;flex-direction:column;gap:12px;">
           @for (_ of [1,2,3,4,5]; track $index) {
-            <div class="h-12 bg-gray-100 rounded animate-pulse"></div>
+            <div style="height:48px;border-radius:8px;background:var(--surface-low,#edf0f8);"></div>
           }
         </div>
-      } @else if (users().length === 0) {
-        <p class="p-6 text-sm text-gray-400 text-center">
+
+      } @else if (filteredUsers().length === 0) {
+        <div style="padding:48px;text-align:center;color:var(--on-surface-subtle,#9a9db8);font-size:.9rem;">
           {{ 'COMMON.NO_RESULTS' | translate }}
-        </p>
+        </div>
+
       } @else {
-        <div class="overflow-x-auto">
-          <table class="w-full text-sm">
-            <thead class="bg-gray-50 text-gray-500 uppercase text-xs">
-              <tr>
-                <th class="px-6 py-3 text-left font-medium">{{ 'CONTACTS.NAME' | translate }}</th>
-                <th class="px-6 py-3 text-left font-medium">{{ 'AUTH.EMAIL' | translate }}</th>
-                <th class="px-6 py-3 text-left font-medium">{{ 'ADMIN.ROLE' | translate }}</th>
-                <th class="px-6 py-3 text-left font-medium">{{ 'ADMIN.LICENSE' | translate }}</th>
-                <th class="px-6 py-3 text-left font-medium">{{ 'ADMIN.IS_ACTIVE' | translate }}</th>
-                <th class="px-6 py-3"></th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100">
-              @for (user of users(); track user.id) {
-                <tr class="hover:bg-gray-50 transition-colors">
-                  <!-- Nombre -->
-                  <td class="px-6 py-3 font-medium text-gray-900">{{ user.name }}</td>
+        <div class="tbl-scroll-outer">
+          <div class="tbl-scroll-inner-lg">
+            <!-- Cabecera -->
+            <div style="display:grid;grid-template-columns:2fr 2fr 1fr 1fr 1fr 120px;padding:12px 20px;background:var(--surface-low,#edf0f8);">
+              <span style="font-size:.72rem;font-weight:700;color:var(--on-surface-subtle,#9a9db8);text-transform:uppercase;letter-spacing:.06em;">Nombre</span>
+              <span style="font-size:.72rem;font-weight:700;color:var(--on-surface-subtle,#9a9db8);text-transform:uppercase;letter-spacing:.06em;">Email</span>
+              <span style="font-size:.72rem;font-weight:700;color:var(--on-surface-subtle,#9a9db8);text-transform:uppercase;letter-spacing:.06em;">Rol</span>
+              <span style="font-size:.72rem;font-weight:700;color:var(--on-surface-subtle,#9a9db8);text-transform:uppercase;letter-spacing:.06em;">Licencia</span>
+              <span style="font-size:.72rem;font-weight:700;color:var(--on-surface-subtle,#9a9db8);text-transform:uppercase;letter-spacing:.06em;">Estado</span>
+              <span></span>
+            </div>
 
-                  <!-- Email -->
-                  <td class="px-6 py-3 text-gray-500">{{ user.email }}</td>
+            <!-- Filas -->
+            @for (user of filteredUsers(); track user.id; let even = $even) {
+              <div [style]="'display:grid;grid-template-columns:2fr 2fr 1fr 1fr 1fr 120px;padding:14px 20px;align-items:center;' + (even ? 'background:var(--surface,#fff);' : 'background:var(--surface-lowest,#f4f6fc);')">
 
-                  <!-- Rol -->
-                  <td class="px-6 py-3">
-                    <span class="px-2 py-1 rounded-full text-xs font-medium"
-                          [class]="roleBadgeClass(user.role)">
-                      {{ 'ADMIN.ROLE_' + user.role.toUpperCase() | translate }}
+                <!-- Nombre -->
+                <div style="display:flex;align-items:center;gap:10px;min-width:0;">
+                  <div style="width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#4c56af,#00ced1);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.8rem;flex-shrink:0;">
+                    {{ user.name.charAt(0).toUpperCase() }}
+                  </div>
+                  <div style="min-width:0;">
+                    <div style="font-weight:600;font-size:.88rem;color:var(--on-surface,#1a1d3a);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ user.name }}</div>
+                    @if (user.must_change_password) {
+                      <div style="font-size:.72rem;color:#b45309;">Debe cambiar contraseña</div>
+                    }
+                  </div>
+                </div>
+
+                <!-- Email -->
+                <div style="font-size:.84rem;color:var(--on-surface-subtle,#9a9db8);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:12px;">{{ user.email }}</div>
+
+                <!-- Rol -->
+                <div>
+                  <span style="padding:3px 10px;border-radius:20px;font-size:.75rem;font-weight:600;" [style]="roleBadgeStyle(user.role)">
+                    {{ user.role === 'admin' ? 'Administrador' : 'Usuario' }}
+                  </span>
+                </div>
+
+                <!-- Licencia -->
+                <div>
+                  @if (user.license) {
+                    <span style="padding:3px 10px;border-radius:20px;font-size:.75rem;font-weight:600;" [style]="planBadgeStyle(user.license.plan)">
+                      {{ user.license.plan | titlecase }}
                     </span>
-                  </td>
+                  } @else {
+                    <span style="font-size:.82rem;color:var(--on-surface-subtle,#9a9db8);">—</span>
+                  }
+                </div>
 
-                  <!-- Licencia -->
-                  <td class="px-6 py-3">
-                    @if (user.license) {
-                      <span class="px-2 py-1 rounded-full text-xs font-medium"
-                            [class]="planBadgeClass(user.license.plan)">
-                        {{ 'ADMIN.PLAN_' + user.license.plan.toUpperCase() | translate }}
-                      </span>
-                    } @else {
-                      <span class="text-gray-400">—</span>
-                    }
-                  </td>
+                <!-- Activo -->
+                <div>
+                  <span style="padding:3px 10px;border-radius:20px;font-size:.75rem;font-weight:600;" [style]="activeStyle(user.is_active)">
+                    {{ user.is_active ? 'Activo' : 'Inactivo' }}
+                  </span>
+                </div>
 
-                  <!-- Activo -->
-                  <td class="px-6 py-3">
-                    @if (user.is_active) {
-                      <span class="inline-flex items-center gap-1 text-green-600 text-xs font-medium">
-                        <span class="w-2 h-2 rounded-full bg-green-500 inline-block"></span>
-                        Sí
-                      </span>
-                    } @else {
-                      <span class="inline-flex items-center gap-1 text-gray-400 text-xs font-medium">
-                        <span class="w-2 h-2 rounded-full bg-gray-300 inline-block"></span>
-                        No
-                      </span>
-                    }
-                  </td>
-
-                  <!-- Acción -->
-                  <td class="px-6 py-3 text-right">
-                    @if (user.is_active) {
-                      <button
-                        (click)="deactivateUser(user.id)"
-                        class="text-xs text-red-600 hover:text-red-800 font-medium transition-colors">
-                        {{ 'ADMIN.DEACTIVATE' | translate }}
-                      </button>
-                    }
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
+                <!-- Acciones -->
+                <div style="display:flex;align-items:center;gap:6px;justify-content:flex-end;">
+                  <button (click)="openEdit(user)" title="Editar"
+                    style="width:30px;height:30px;border-radius:8px;border:none;background:var(--surface-low,#edf0f8);color:var(--on-surface-subtle,#9a9db8);cursor:pointer;display:flex;align-items:center;justify-content:center;"
+                    onmouseenter="this.style.background='#e8eaf6';this.style.color='#4c56af'" onmouseleave="this.style.background='var(--surface-low,#edf0f8)';this.style.color='var(--on-surface-subtle,#9a9db8)'">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  </button>
+                  <button (click)="openLicense(user)" title="Cambiar licencia"
+                    style="width:30px;height:30px;border-radius:8px;border:none;background:var(--surface-low,#edf0f8);color:var(--on-surface-subtle,#9a9db8);cursor:pointer;display:flex;align-items:center;justify-content:center;"
+                    onmouseenter="this.style.background='#e0f7fa';this.style.color='#00838f'" onmouseleave="this.style.background='var(--surface-low,#edf0f8)';this.style.color='var(--on-surface-subtle,#9a9db8)'">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/></svg>
+                  </button>
+                  @if (user.is_active) {
+                    <button (click)="confirmDelete(user.id)" title="Desactivar"
+                      style="width:30px;height:30px;border-radius:8px;border:none;background:var(--surface-low,#edf0f8);color:var(--on-surface-subtle,#9a9db8);cursor:pointer;display:flex;align-items:center;justify-content:center;"
+                      onmouseenter="this.style.background='#fce8e6';this.style.color='#b3261e'" onmouseleave="this.style.background='var(--surface-low,#edf0f8)';this.style.color='var(--on-surface-subtle,#9a9db8)'">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+          </div>
         </div>
       }
     </div>
 
   </main>
 </div>
+
+<!-- ═══════════════════════════ MODAL CREAR ════════════════════════════════ -->
+@if (showCreateModal()) {
+  <div style="position:fixed;inset:0;background:rgba(10,12,40,.55);z-index:900;display:flex;align-items:center;justify-content:center;padding:16px;" (click)="showCreateModal.set(false)">
+    <div style="background:var(--surface,#fff);border-radius:20px;width:100%;max-width:460px;box-shadow:0 24px 60px rgba(0,0,0,.18);overflow:hidden;" (click)="$event.stopPropagation()">
+      <div style="padding:22px 24px 0;display:flex;align-items:center;justify-content:space-between;">
+        <h2 style="font-family:'Manrope',sans-serif;font-size:1.1rem;font-weight:800;color:var(--on-surface,#1a1d3a);margin:0;">Nuevo usuario</h2>
+        <button (click)="showCreateModal.set(false)" style="width:30px;height:30px;border-radius:8px;border:none;background:var(--surface-low,#edf0f8);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--on-surface-subtle,#9a9db8);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div style="padding:20px 24px 24px;display:flex;flex-direction:column;gap:14px;">
+        <div>
+          <label style="display:block;font-size:.78rem;font-weight:600;color:var(--on-surface-subtle,#9a9db8);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;">Nombre completo</label>
+          <input type="text" [value]="createForm().name" (input)="updateCreateField('name', $any($event.target).value)"
+            style="width:100%;padding:10px 12px;border-radius:10px;border:2px solid var(--surface-low,#edf0f8);background:var(--surface-lowest,#f4f6fc);font-size:.88rem;color:var(--on-surface,#1a1d3a);outline:none;box-sizing:border-box;"
+            onfocus="this.style.borderColor='#00ced1'" onblur="this.style.borderColor='var(--surface-low,#edf0f8)'" placeholder="Nombre del usuario" />
+        </div>
+        <div>
+          <label style="display:block;font-size:.78rem;font-weight:600;color:var(--on-surface-subtle,#9a9db8);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;">Email</label>
+          <input type="email" [value]="createForm().email" (input)="updateCreateField('email', $any($event.target).value)"
+            style="width:100%;padding:10px 12px;border-radius:10px;border:2px solid var(--surface-low,#edf0f8);background:var(--surface-lowest,#f4f6fc);font-size:.88rem;color:var(--on-surface,#1a1d3a);outline:none;box-sizing:border-box;"
+            onfocus="this.style.borderColor='#00ced1'" onblur="this.style.borderColor='var(--surface-low,#edf0f8)'" placeholder="usuario@empresa.com" />
+        </div>
+        <div>
+          <label style="display:block;font-size:.78rem;font-weight:600;color:var(--on-surface-subtle,#9a9db8);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;">Contraseña</label>
+          <input type="password" [value]="createForm().password" (input)="updateCreateField('password', $any($event.target).value)"
+            style="width:100%;padding:10px 12px;border-radius:10px;border:2px solid var(--surface-low,#edf0f8);background:var(--surface-lowest,#f4f6fc);font-size:.88rem;color:var(--on-surface,#1a1d3a);outline:none;box-sizing:border-box;"
+            onfocus="this.style.borderColor='#00ced1'" onblur="this.style.borderColor='var(--surface-low,#edf0f8)'" placeholder="Contraseña temporal" />
+        </div>
+        <div>
+          <label style="display:block;font-size:.78rem;font-weight:600;color:var(--on-surface-subtle,#9a9db8);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;">Rol</label>
+          <select [value]="createForm().role" (change)="updateCreateField('role', $any($event.target).value)"
+            style="width:100%;padding:10px 12px;border-radius:10px;border:2px solid var(--surface-low,#edf0f8);background:var(--surface-lowest,#f4f6fc);font-size:.88rem;color:var(--on-surface,#1a1d3a);outline:none;box-sizing:border-box;cursor:pointer;">
+            <option value="user">Usuario</option>
+            <option value="admin">Administrador</option>
+          </select>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:4px;">
+          <button (click)="showCreateModal.set(false)"
+            style="flex:1;padding:11px;border-radius:10px;border:2px solid var(--surface-low,#edf0f8);background:transparent;font-weight:600;font-size:.85rem;color:var(--on-surface-subtle,#9a9db8);cursor:pointer;">
+            Cancelar
+          </button>
+          <button (click)="submitCreate()" [disabled]="createLoading()"
+            style="flex:2;padding:11px;border-radius:10px;border:none;background:linear-gradient(135deg,#4c56af,#00ced1);color:#fff;font-weight:700;font-size:.85rem;cursor:pointer;"
+            [style.opacity]="createLoading() ? '0.6' : '1'">
+            {{ createLoading() ? 'Creando...' : 'Crear usuario' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ═══════════════════════════ MODAL EDITAR ════════════════════════════════ -->
+@if (showEditModal() && editTarget()) {
+  <div style="position:fixed;inset:0;background:rgba(10,12,40,.55);z-index:900;display:flex;align-items:center;justify-content:center;padding:16px;" (click)="showEditModal.set(false)">
+    <div style="background:var(--surface,#fff);border-radius:20px;width:100%;max-width:440px;box-shadow:0 24px 60px rgba(0,0,0,.18);overflow:hidden;" (click)="$event.stopPropagation()">
+      <div style="padding:22px 24px 0;display:flex;align-items:center;justify-content:space-between;">
+        <h2 style="font-family:'Manrope',sans-serif;font-size:1.1rem;font-weight:800;color:var(--on-surface,#1a1d3a);margin:0;">Editar: {{ editTarget()!.name }}</h2>
+        <button (click)="showEditModal.set(false)" style="width:30px;height:30px;border-radius:8px;border:none;background:var(--surface-low,#edf0f8);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--on-surface-subtle,#9a9db8);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div style="padding:20px 24px 24px;display:flex;flex-direction:column;gap:14px;">
+        <div>
+          <label style="display:block;font-size:.78rem;font-weight:600;color:var(--on-surface-subtle,#9a9db8);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;">Nombre completo</label>
+          <input type="text" [value]="editForm().name" (input)="updateEditField('name', $any($event.target).value)"
+            style="width:100%;padding:10px 12px;border-radius:10px;border:2px solid var(--surface-low,#edf0f8);background:var(--surface-lowest,#f4f6fc);font-size:.88rem;color:var(--on-surface,#1a1d3a);outline:none;box-sizing:border-box;"
+            onfocus="this.style.borderColor='#00ced1'" onblur="this.style.borderColor='var(--surface-low,#edf0f8)'" />
+        </div>
+        <div>
+          <label style="display:block;font-size:.78rem;font-weight:600;color:var(--on-surface-subtle,#9a9db8);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;">Rol</label>
+          <select [value]="editForm().role" (change)="updateEditField('role', $any($event.target).value)"
+            style="width:100%;padding:10px 12px;border-radius:10px;border:2px solid var(--surface-low,#edf0f8);background:var(--surface-lowest,#f4f6fc);font-size:.88rem;color:var(--on-surface,#1a1d3a);outline:none;box-sizing:border-box;cursor:pointer;">
+            <option value="user">Usuario</option>
+            <option value="admin">Administrador</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;border-radius:10px;background:var(--surface-lowest,#f4f6fc);">
+          <div>
+            <div style="font-size:.88rem;font-weight:600;color:var(--on-surface,#1a1d3a);">Activo</div>
+            <div style="font-size:.78rem;color:var(--on-surface-subtle,#9a9db8);">Habilitar o deshabilitar acceso</div>
+          </div>
+          <button (click)="updateEditField('is_active', !editForm().is_active)"
+            [style]="'width:44px;height:24px;border-radius:12px;border:none;cursor:pointer;position:relative;transition:background .2s;' + (editForm().is_active ? 'background:#00ced1;' : 'background:var(--surface-low,#edf0f8);')">
+            <span [style]="'position:absolute;top:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:left .2s;' + (editForm().is_active ? 'left:23px;' : 'left:3px;')"></span>
+          </button>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:4px;">
+          <button (click)="showEditModal.set(false)"
+            style="flex:1;padding:11px;border-radius:10px;border:2px solid var(--surface-low,#edf0f8);background:transparent;font-weight:600;font-size:.85rem;color:var(--on-surface-subtle,#9a9db8);cursor:pointer;">
+            Cancelar
+          </button>
+          <button (click)="submitEdit()" [disabled]="editLoading()"
+            style="flex:2;padding:11px;border-radius:10px;border:none;background:linear-gradient(135deg,#4c56af,#00ced1);color:#fff;font-weight:700;font-size:.85rem;cursor:pointer;"
+            [style.opacity]="editLoading() ? '0.6' : '1'">
+            {{ editLoading() ? 'Guardando...' : 'Guardar' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ═══════════════════════ MODAL LICENCIA ══════════════════════════════════ -->
+@if (showLicenseModal() && licenseTarget()) {
+  <div style="position:fixed;inset:0;background:rgba(10,12,40,.55);z-index:900;display:flex;align-items:center;justify-content:center;padding:16px;" (click)="showLicenseModal.set(false)">
+    <div style="background:var(--surface,#fff);border-radius:20px;width:100%;max-width:420px;box-shadow:0 24px 60px rgba(0,0,0,.18);overflow:hidden;" (click)="$event.stopPropagation()">
+      <div style="padding:22px 24px 0;display:flex;align-items:center;justify-content:space-between;">
+        <h2 style="font-family:'Manrope',sans-serif;font-size:1.1rem;font-weight:800;color:var(--on-surface,#1a1d3a);margin:0;">Plan de licencia</h2>
+        <button (click)="showLicenseModal.set(false)" style="width:30px;height:30px;border-radius:8px;border:none;background:var(--surface-low,#edf0f8);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--on-surface-subtle,#9a9db8);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div style="padding:20px 24px 24px;display:flex;flex-direction:column;gap:12px;">
+        <p style="font-size:.84rem;color:var(--on-surface-subtle,#9a9db8);margin:0;">Plan para <strong style="color:var(--on-surface,#1a1d3a);">{{ licenseTarget()!.name }}</strong></p>
+        @for (plan of ['free','pro','enterprise']; track plan) {
+          <div (click)="updateLicensePlan($any(plan))"
+            [style]="'padding:14px 16px;border-radius:12px;cursor:pointer;border:2px solid;transition:all .15s;' + (licenseForm().plan === plan ? 'border-color:#00ced1;background:#e0fafa;' : 'border-color:var(--surface-low,#edf0f8);background:var(--surface-lowest,#f4f6fc);')">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <div>
+                <div style="font-weight:700;font-size:.9rem;color:var(--on-surface,#1a1d3a);">{{ plan | titlecase }}</div>
+                <div style="font-size:.78rem;color:var(--on-surface-subtle,#9a9db8);margin-top:2px;">
+                  @if (plan === 'free') { Acceso básico sin coste }
+                  @if (plan === 'pro') { Funciones avanzadas y soporte prioritario }
+                  @if (plan === 'enterprise') { Acceso completo y personalización }
+                </div>
+              </div>
+              @if (licenseForm().plan === plan) {
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#00ced1" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              }
+            </div>
+          </div>
+        }
+        <div style="display:flex;gap:10px;margin-top:4px;">
+          <button (click)="showLicenseModal.set(false)"
+            style="flex:1;padding:11px;border-radius:10px;border:2px solid var(--surface-low,#edf0f8);background:transparent;font-weight:600;font-size:.85rem;color:var(--on-surface-subtle,#9a9db8);cursor:pointer;">
+            Cancelar
+          </button>
+          <button (click)="submitLicense()" [disabled]="licenseLoading()"
+            style="flex:2;padding:11px;border-radius:10px;border:none;background:linear-gradient(135deg,#4c56af,#00ced1);color:#fff;font-weight:700;font-size:.85rem;cursor:pointer;"
+            [style.opacity]="licenseLoading() ? '0.6' : '1'">
+            {{ licenseLoading() ? 'Guardando...' : 'Guardar' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ═══════════════════════ CONFIRMACIÓN ELIMINAR ═══════════════════════════ -->
+@if (confirmDeleteId() !== null) {
+  <div style="position:fixed;inset:0;background:rgba(10,12,40,.55);z-index:900;display:flex;align-items:center;justify-content:center;padding:16px;" (click)="cancelDelete()">
+    <div style="background:var(--surface,#fff);border-radius:20px;width:100%;max-width:380px;box-shadow:0 24px 60px rgba(0,0,0,.18);padding:28px 24px;" (click)="$event.stopPropagation()">
+      <div style="width:52px;height:52px;border-radius:50%;background:#fce8e6;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#b3261e" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+      </div>
+      <h3 style="font-family:'Manrope',sans-serif;font-size:1rem;font-weight:800;color:var(--on-surface,#1a1d3a);text-align:center;margin:0 0 8px;">Desactivar usuario</h3>
+      <p style="font-size:.84rem;color:var(--on-surface-subtle,#9a9db8);text-align:center;margin:0 0 20px;">¿Estás seguro? El usuario perderá el acceso al sistema.</p>
+      <div style="display:flex;gap:10px;">
+        <button (click)="cancelDelete()"
+          style="flex:1;padding:11px;border-radius:10px;border:2px solid var(--surface-low,#edf0f8);background:transparent;font-weight:600;font-size:.85rem;color:var(--on-surface-subtle,#9a9db8);cursor:pointer;">
+          Cancelar
+        </button>
+        <button (click)="executeDelete()"
+          style="flex:1;padding:11px;border-radius:10px;border:none;background:#b3261e;color:#fff;font-weight:700;font-size:.85rem;cursor:pointer;">
+          Desactivar
+        </button>
+      </div>
+    </div>
+  </div>
+}

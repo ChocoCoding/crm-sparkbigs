@@ -40,6 +40,8 @@ export class ReunionesComponent implements OnInit {
   readonly showModal  = signal(false);
   readonly saving     = signal(false);
   readonly activeTab  = signal<'calendar' | 'list'>('calendar');
+  readonly editingId  = signal<number | null>(null);
+  readonly isEditing  = computed(() => this.editingId() !== null);
 
   // ─── Calendario ──────────────────────────────────────────────
   readonly calendarDate = signal(new Date());
@@ -161,6 +163,7 @@ export class ReunionesComponent implements OnInit {
 
   // ─── Modal ───────────────────────────────────────────────────
   openModal(): void {
+    this.editingId.set(null);
     const today = new Date().toISOString().split('T')[0];
     this.form.set({
       title: '', company_id: 0, contact_id: null,
@@ -170,36 +173,45 @@ export class ReunionesComponent implements OnInit {
     this.showModal.set(true);
   }
 
-  closeModal(): void { this.showModal.set(false); }
+  openEdit(meeting: Meeting): void {
+    this.editingId.set(meeting.id);
+    const d = new Date(meeting.start_at);
+    const start_date = d.toISOString().split('T')[0];
+    const start_time = d.toTimeString().slice(0, 5);
+    this.form.set({
+      title: meeting.title, company_id: meeting.company_id,
+      contact_id: meeting.contact_id, start_at: meeting.start_at,
+      start_date, start_time, duration_min: meeting.duration_min,
+      status: meeting.status, notes: meeting.notes,
+    });
+    this.showModal.set(true);
+  }
+
+  closeModal(): void { this.showModal.set(false); this.editingId.set(null); }
 
   patchForm(field: string, value: string | number | null): void {
     this.form.update(f => ({ ...f, [field]: value }));
   }
 
-  submitCreate(): void {
+  submit(): void {
     const f = this.form();
     if (!f.title?.trim()) { this.errorMsg.set('El título es obligatorio'); return; }
     if (!f.company_id)    { this.errorMsg.set('La empresa es obligatoria'); return; }
     if (!f.start_date)    { this.errorMsg.set('La fecha es obligatoria'); return; }
 
-    // Combinar fecha + hora → ISO 8601
     const startAt = new Date(`${f.start_date}T${f.start_time}:00`).toISOString();
-
     const payload: MeetingPayload = {
-      title:       f.title,
-      company_id:  f.company_id,
-      contact_id:  f.contact_id || null,
-      start_at:    startAt,
-      duration_min: f.duration_min,
-      status:      f.status,
-      notes:       f.notes,
+      title: f.title, company_id: f.company_id, contact_id: f.contact_id || null,
+      start_at: startAt, duration_min: f.duration_min, status: f.status, notes: f.notes,
     };
 
     this.saving.set(true);
-    this.svc.create(payload).subscribe({
+    const id = this.editingId();
+    const req$ = id ? this.svc.update(id, payload) : this.svc.create(payload);
+    req$.subscribe({
       next: (res) => {
         if (res.success) {
-          this.successMsg.set('Reunión creada correctamente');
+          this.successMsg.set(id ? 'Reunión actualizada' : 'Reunión creada');
           setTimeout(() => this.successMsg.set(null), 3000);
           this.closeModal();
           this.load();
@@ -208,7 +220,7 @@ export class ReunionesComponent implements OnInit {
         this.saving.set(false);
       },
       error: (err: HttpErrorResponse) => {
-        this.errorMsg.set(err.error?.error?.message ?? 'Error creando reunión');
+        this.errorMsg.set(err.error?.error?.message ?? 'Error guardando reunión');
         this.saving.set(false);
       },
     });

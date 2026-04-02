@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -32,6 +32,8 @@ export class ContactosComponent implements OnInit {
   readonly showModal   = signal(false);
   readonly saving      = signal(false);
   readonly searchQuery = signal('');
+  readonly editingId   = signal<number | null>(null);
+  readonly isEditing   = computed(() => this.editingId() !== null);
 
   readonly form = signal<ContactPayload>({
     name: '', email: '', phone: '', position: '',
@@ -81,25 +83,37 @@ export class ContactosComponent implements OnInit {
   }
 
   openModal(): void {
+    this.editingId.set(null);
     this.form.set({ name: '', email: '', phone: '', position: '', status: 'active', company_id: null });
     this.showModal.set(true);
   }
 
-  closeModal(): void { this.showModal.set(false); }
+  openEdit(contact: Contact): void {
+    this.editingId.set(contact.id);
+    this.form.set({
+      name: contact.name, email: contact.email, phone: contact.phone,
+      position: contact.position, status: contact.status,
+      company_id: contact.company_id,
+    });
+    this.showModal.set(true);
+  }
+
+  closeModal(): void { this.showModal.set(false); this.editingId.set(null); }
 
   patchForm(field: keyof ContactPayload, value: string | number | null): void {
     this.form.update(f => ({ ...f, [field]: value }));
   }
 
-  submitCreate(): void {
+  submit(): void {
     const f = this.form();
     if (!f.name?.trim()) { this.errorMsg.set('El nombre es obligatorio'); return; }
-
     this.saving.set(true);
-    this.svc.create(f).subscribe({
+    const id = this.editingId();
+    const req$ = id ? this.svc.update(id, f) : this.svc.create(f);
+    req$.subscribe({
       next: (res) => {
         if (res.success) {
-          this.successMsg.set('Contacto creado correctamente');
+          this.successMsg.set(id ? 'Contacto actualizado' : 'Contacto creado');
           setTimeout(() => this.successMsg.set(null), 3000);
           this.closeModal();
           this.load();
@@ -107,7 +121,7 @@ export class ContactosComponent implements OnInit {
         this.saving.set(false);
       },
       error: (err: HttpErrorResponse) => {
-        this.errorMsg.set(err.error?.error?.message ?? 'Error creando contacto');
+        this.errorMsg.set(err.error?.error?.message ?? 'Error guardando contacto');
         this.saving.set(false);
       },
     });

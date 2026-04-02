@@ -6,7 +6,8 @@
       "Bash(go build:*)",
       "Bash(go mod:*)",
       "Bash(go test:*)",
-      "Bash(npx nx:*)"
+      "Bash(npx nx:*)",
+      "Bash(go run:*)"
     ]
   }
 }

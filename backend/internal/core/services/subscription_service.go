@@ -51,8 +51,17 @@ func (s *subscriptionService) UpdateSubscription(sub *domain.Subscription, userI
 	if existing.UserID != userID {
 		return ErrSubscriptionForbidden
 	}
-	sub.UserID = existing.UserID
-	return s.repo.Update(sub)
+	existing.Name         = sub.Name
+	existing.PlanType     = sub.PlanType
+	existing.Status       = sub.Status
+	existing.Amount       = sub.Amount
+	existing.Currency     = sub.Currency
+	existing.BillingCycle = sub.BillingCycle
+	existing.StartDate    = sub.StartDate
+	existing.RenewalDate  = sub.RenewalDate
+	existing.Notes        = sub.Notes
+	existing.CompanyID    = sub.CompanyID
+	return s.repo.Update(existing)
 }
 
 func (s *subscriptionService) DeleteSubscription(id, userID uint) error {

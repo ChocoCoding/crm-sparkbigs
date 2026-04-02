@@ -51,8 +51,13 @@ func (s *contactService) UpdateContact(contact *domain.Contact, userID uint) err
 	if existing.UserID != userID {
 		return ErrContactForbidden
 	}
-	contact.UserID = existing.UserID
-	return s.contactRepo.Update(contact)
+	existing.Name      = contact.Name
+	existing.Email     = contact.Email
+	existing.Phone     = contact.Phone
+	existing.Position  = contact.Position
+	existing.Status    = contact.Status
+	existing.CompanyID = contact.CompanyID // *uint nullable
+	return s.contactRepo.Update(existing)
 }
 
 func (s *contactService) DeleteContact(id, userID uint) error {

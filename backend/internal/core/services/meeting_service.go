@@ -51,8 +51,14 @@ func (s *meetingService) UpdateMeeting(meeting *domain.Meeting, userID uint) err
 	if existing.UserID != userID {
 		return ErrMeetingForbidden
 	}
-	meeting.UserID = existing.UserID
-	return s.repo.Update(meeting)
+	existing.Title       = meeting.Title
+	existing.CompanyID   = meeting.CompanyID
+	existing.ContactID   = meeting.ContactID
+	existing.StartAt     = meeting.StartAt
+	existing.DurationMin = meeting.DurationMin
+	existing.Status      = meeting.Status
+	existing.Notes       = meeting.Notes
+	return s.repo.Update(existing)
 }
 
 func (s *meetingService) DeleteMeeting(id, userID uint) error {

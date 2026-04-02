@@ -47,8 +47,14 @@ func (s *companyService) UpdateCompany(company *domain.Company, userID uint) err
 	if existing.UserID != userID {
 		return ErrCompanyForbidden
 	}
-	company.UserID = existing.UserID
-	return s.companyRepo.Update(company)
+	existing.Name              = company.Name
+	existing.Sector            = company.Sector
+	existing.Status            = company.Status
+	existing.Website           = company.Website
+	existing.Phone             = company.Phone
+	existing.Address           = company.Address
+	existing.RelationStartDate = company.RelationStartDate
+	return s.companyRepo.Update(existing)
 }
 
 func (s *companyService) DeleteCompany(id, userID uint) error {

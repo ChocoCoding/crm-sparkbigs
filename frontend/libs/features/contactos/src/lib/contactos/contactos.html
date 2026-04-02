@@ -80,7 +80,7 @@
         <div class="tbl-scroll-inner">
 
       <!-- Cabecera -->
-      <div style="display:grid;grid-template-columns:2.5fr 1.2fr 1fr 1fr 1fr 48px;gap:8px;padding:14px 24px;background:var(--surface,#f4f6fb);">
+      <div style="display:grid;grid-template-columns:2.5fr 1.2fr 1fr 1fr 1fr 80px;gap:8px;padding:14px 24px;background:var(--surface,#f4f6fb);">
         @for (h of ['CONTACTO','EMPRESA','CARGO','TELÉFONO','ESTADO','']; track h) {
           <span style="font-family:'Inter',sans-serif;font-size:10.5px;font-weight:600;color:var(--on-surface-subtle,#9a9db8);text-transform:uppercase;letter-spacing:0.07em;">{{ h }}</span>
         }
@@ -106,7 +106,7 @@
       <!-- Filas de datos -->
       @if (!loading()) {
         @for (contact of contacts(); track contact.id; let odd = $odd) {
-          <div style="display:grid;grid-template-columns:2.5fr 1.2fr 1fr 1fr 1fr 48px;gap:8px;align-items:center;padding:14px 24px;transition:background 200ms;"
+          <div style="display:grid;grid-template-columns:2.5fr 1.2fr 1fr 1fr 1fr 80px;gap:8px;align-items:center;padding:14px 24px;transition:background 200ms;"
             [style.background]="odd ? 'var(--surface,#f4f6fb)' : 'transparent'"
             onmouseover="this.style.background='var(--surface-low,#edf0f8)'"
             onmouseout="this.style.background=''">
@@ -157,16 +157,27 @@
               }
             </span>
 
-            <!-- Eliminar -->
-            <button (click)="deleteContact(contact.id)"
-              style="background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--on-surface-subtle,#9a9db8);transition:color 200ms,background 200ms;"
-              onmouseover="this.style.color='#b3261e';this.style.background='#fce8e6'"
-              onmouseout="this.style.color='var(--on-surface-subtle,#9a9db8)';this.style.background='none'"
-              title="Eliminar contacto">
-              <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-              </svg>
-            </button>
+            <!-- Acciones -->
+            <div style="display:flex;gap:4px;justify-content:flex-end;">
+              <button (click)="openEdit(contact)"
+                style="background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--on-surface-subtle,#9a9db8);transition:color 200ms,background 200ms;"
+                onmouseover="this.style.color='#4c56af';this.style.background='#e8eaf6'"
+                onmouseout="this.style.color='var(--on-surface-subtle,#9a9db8)';this.style.background='none'"
+                title="Editar contacto">
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                </svg>
+              </button>
+              <button (click)="deleteContact(contact.id)"
+                style="background:none;border:none;cursor:pointer;padding:6px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--on-surface-subtle,#9a9db8);transition:color 200ms,background 200ms;"
+                onmouseover="this.style.color='#b3261e';this.style.background='#fce8e6'"
+                onmouseout="this.style.color='var(--on-surface-subtle,#9a9db8)';this.style.background='none'"
+                title="Eliminar contacto">
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+              </button>
+            </div>
           </div>
         }
 
@@ -216,7 +227,7 @@
       <!-- Cabecera modal -->
       <div style="display:flex;align-items:center;justify-content:space-between;padding:22px 26px 18px;">
         <h2 style="font-family:'Manrope',sans-serif;font-size:18px;font-weight:800;color:var(--on-surface,#1a1c2e);letter-spacing:-0.02em;margin:0;">
-          Nuevo Contacto
+          {{ isEditing() ? 'Editar Contacto' : 'Nuevo Contacto' }}
         </h2>
         <button (click)="closeModal()"
           style="width:32px;height:32px;border-radius:8px;border:none;background:var(--surface,#f4f6fb);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--on-surface-variant,#5c5f7a);">
@@ -228,7 +239,7 @@
 
       <div style="height:1px;background:rgba(92,95,122,0.08);margin:0 26px;"></div>
 
-      <form (ngSubmit)="submitCreate()" style="padding:22px 26px;display:flex;flex-direction:column;gap:16px;">
+      <form (ngSubmit)="submit()" style="padding:22px 26px;display:flex;flex-direction:column;gap:16px;">
 
         <!-- Nombre -->
         <div>
@@ -323,7 +334,7 @@
           <button type="submit" [disabled]="saving()"
             style="padding:10px 22px;background:linear-gradient(135deg,#00ced1 0%,#00969a 100%);border:none;border-radius:10px;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;color:#fff;cursor:pointer;box-shadow:0 4px 14px rgba(0,206,209,0.28);transition:opacity 200ms;"
             [style.opacity]="saving() ? '0.6' : '1'">
-            {{ saving() ? 'Guardando...' : 'Crear contacto' }}
+            {{ saving() ? 'Guardando...' : (isEditing() ? 'Guardar cambios' : 'Crear contacto') }}
           </button>
         </div>
 

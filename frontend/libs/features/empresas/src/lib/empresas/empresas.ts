@@ -29,6 +29,8 @@ export class EmpresasComponent implements OnInit {
   readonly saving     = signal(false);
   readonly searchQuery = signal('');
   readonly isSearching = computed(() => this.searchQuery().length > 1);
+  readonly editingId  = signal<number | null>(null);
+  readonly isEditing  = computed(() => this.editingId() !== null);
 
   readonly form = signal<CompanyPayload>({
     name: '', sector: '', status: 'prospect',
@@ -70,24 +72,37 @@ export class EmpresasComponent implements OnInit {
   }
 
   openModal(): void {
+    this.editingId.set(null);
     this.form.set({ name: '', sector: '', status: 'prospect', website: '', phone: '', address: '', relation_start_date: null });
     this.showModal.set(true);
   }
 
-  closeModal(): void { this.showModal.set(false); }
+  openEdit(company: Company): void {
+    this.editingId.set(company.id);
+    this.form.set({
+      name: company.name, sector: company.sector, status: company.status,
+      website: company.website, phone: company.phone, address: company.address,
+      relation_start_date: company.relation_start_date,
+    });
+    this.showModal.set(true);
+  }
+
+  closeModal(): void { this.showModal.set(false); this.editingId.set(null); }
 
   patchForm(field: keyof CompanyPayload, value: string): void {
     this.form.update(f => ({ ...f, [field]: value }));
   }
 
-  submitCreate(): void {
+  submit(): void {
     const f = this.form();
     if (!f.name?.trim()) { this.errorMsg.set('El nombre es obligatorio'); return; }
     this.saving.set(true);
-    this.svc.create(f).subscribe({
+    const id = this.editingId();
+    const req$ = id ? this.svc.update(id, f) : this.svc.create(f);
+    req$.subscribe({
       next: (res) => {
         if (res.success) {
-          this.successMsg.set('Empresa creada correctamente');
+          this.successMsg.set(id ? 'Empresa actualizada' : 'Empresa creada');
           setTimeout(() => this.successMsg.set(null), 3000);
           this.closeModal();
           this.load();
@@ -95,7 +110,7 @@ export class EmpresasComponent implements OnInit {
         this.saving.set(false);
       },
       error: (err: HttpErrorResponse) => {
-        this.errorMsg.set(err.error?.error?.message ?? 'Error creando empresa');
+        this.errorMsg.set(err.error?.error?.message ?? 'Error guardando empresa');
         this.saving.set(false);
       },
     });

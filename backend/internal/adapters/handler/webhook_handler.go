@@ -37,21 +37,33 @@ func NewWebhookHandler(
 func (h *WebhookHandler) RegisterRoutes(app *fiber.App, apiKeyMiddleware fiber.Handler) {
 	wh := app.Group("/webhooks/v1", apiKeyMiddleware)
 
-	// Empresas
+	// Empresas — CRUD completo
+	wh.Get("/companies", h.ListCompanies)
+	wh.Get("/companies/:id", h.GetCompany)
 	wh.Post("/companies", h.CreateCompany)
 	wh.Put("/companies/:id", h.UpdateCompany)
+	wh.Delete("/companies/:id", h.DeleteCompany)
 
-	// Contactos
+	// Contactos — CRUD completo
+	wh.Get("/contacts", h.ListContacts)
+	wh.Get("/contacts/:id", h.GetContact)
 	wh.Post("/contacts", h.CreateContact)
 	wh.Put("/contacts/:id", h.UpdateContact)
+	wh.Delete("/contacts/:id", h.DeleteContact)
 
-	// Reuniones
+	// Reuniones — CRUD completo
+	wh.Get("/meetings", h.ListMeetings)
+	wh.Get("/meetings/:id", h.GetMeeting)
 	wh.Post("/meetings", h.CreateMeeting)
 	wh.Put("/meetings/:id", h.UpdateMeeting)
+	wh.Delete("/meetings/:id", h.DeleteMeeting)
 
-	// Suscripciones
+	// Suscripciones — CRUD completo
+	wh.Get("/subscriptions", h.ListSubscriptions)
+	wh.Get("/subscriptions/:id", h.GetSubscription)
 	wh.Post("/subscriptions", h.CreateSubscription)
 	wh.Put("/subscriptions/:id", h.UpdateSubscription)
+	wh.Delete("/subscriptions/:id", h.DeleteSubscription)
 }
 
 // ─── Empresas ────────────────────────────────────────────────────────────────
@@ -443,6 +455,174 @@ func (h *WebhookHandler) UpdateSubscription(c *fiber.Ctx) error {
 		return webhookError(c, 500, "INTERNAL_ERROR", err.Error())
 	}
 	return c.JSON(fiber.Map{"success": true, "data": fiber.Map{"subscription": existing}})
+}
+
+// ─── List / Get / Delete — Empresas ─────────────────────────────────────────
+
+func (h *WebhookHandler) ListCompanies(c *fiber.Ctx) error {
+	userID := c.Locals("userID").(uint)
+	offset := c.QueryInt("offset", 0)
+	limit := c.QueryInt("limit", 20)
+
+	list, total, err := h.companySvc.ListCompanies(userID, offset, limit)
+	if err != nil {
+		return webhookError(c, 500, "INTERNAL_ERROR", err.Error())
+	}
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data":    fiber.Map{"list": list, "total": total, "offset": offset, "limit": limit},
+	})
+}
+
+func (h *WebhookHandler) GetCompany(c *fiber.Ctx) error {
+	userID := c.Locals("userID").(uint)
+	id, err := parseID(c, "id")
+	if err != nil {
+		return webhookError(c, 400, "INVALID_PARAM", "ID inválido")
+	}
+	company, err := h.companySvc.GetCompany(id, userID)
+	if err != nil {
+		return webhookError(c, 404, "NOT_FOUND", "Empresa no encontrada")
+	}
+	return c.JSON(fiber.Map{"success": true, "data": fiber.Map{"company": company}})
+}
+
+func (h *WebhookHandler) DeleteCompany(c *fiber.Ctx) error {
+	userID := c.Locals("userID").(uint)
+	id, err := parseID(c, "id")
+	if err != nil {
+		return webhookError(c, 400, "INVALID_PARAM", "ID inválido")
+	}
+	if err := h.companySvc.DeleteCompany(id, userID); err != nil {
+		return webhookError(c, 404, "NOT_FOUND", "Empresa no encontrada")
+	}
+	return c.JSON(fiber.Map{"success": true, "data": fiber.Map{"deleted": true}})
+}
+
+// ─── List / Get / Delete — Contactos ─────────────────────────────────────────
+
+func (h *WebhookHandler) ListContacts(c *fiber.Ctx) error {
+	userID := c.Locals("userID").(uint)
+	offset := c.QueryInt("offset", 0)
+	limit := c.QueryInt("limit", 20)
+
+	list, total, err := h.contactSvc.ListContacts(userID, offset, limit)
+	if err != nil {
+		return webhookError(c, 500, "INTERNAL_ERROR", err.Error())
+	}
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data":    fiber.Map{"list": list, "total": total, "offset": offset, "limit": limit},
+	})
+}
+
+func (h *WebhookHandler) GetContact(c *fiber.Ctx) error {
+	userID := c.Locals("userID").(uint)
+	id, err := parseID(c, "id")
+	if err != nil {
+		return webhookError(c, 400, "INVALID_PARAM", "ID inválido")
+	}
+	contact, err := h.contactSvc.GetContact(id, userID)
+	if err != nil {
+		return webhookError(c, 404, "NOT_FOUND", "Contacto no encontrado")
+	}
+	return c.JSON(fiber.Map{"success": true, "data": fiber.Map{"contact": contact}})
+}
+
+func (h *WebhookHandler) DeleteContact(c *fiber.Ctx) error {
+	userID := c.Locals("userID").(uint)
+	id, err := parseID(c, "id")
+	if err != nil {
+		return webhookError(c, 400, "INVALID_PARAM", "ID inválido")
+	}
+	if err := h.contactSvc.DeleteContact(id, userID); err != nil {
+		return webhookError(c, 404, "NOT_FOUND", "Contacto no encontrado")
+	}
+	return c.JSON(fiber.Map{"success": true, "data": fiber.Map{"deleted": true}})
+}
+
+// ─── List / Get / Delete — Reuniones ─────────────────────────────────────────
+
+func (h *WebhookHandler) ListMeetings(c *fiber.Ctx) error {
+	userID := c.Locals("userID").(uint)
+	offset := c.QueryInt("offset", 0)
+	limit := c.QueryInt("limit", 20)
+
+	list, total, err := h.meetingSvc.ListMeetings(userID, offset, limit)
+	if err != nil {
+		return webhookError(c, 500, "INTERNAL_ERROR", err.Error())
+	}
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data":    fiber.Map{"list": list, "total": total, "offset": offset, "limit": limit},
+	})
+}
+
+func (h *WebhookHandler) GetMeeting(c *fiber.Ctx) error {
+	userID := c.Locals("userID").(uint)
+	id, err := parseID(c, "id")
+	if err != nil {
+		return webhookError(c, 400, "INVALID_PARAM", "ID inválido")
+	}
+	meeting, err := h.meetingSvc.GetMeeting(id, userID)
+	if err != nil {
+		return webhookError(c, 404, "NOT_FOUND", "Reunión no encontrada")
+	}
+	return c.JSON(fiber.Map{"success": true, "data": fiber.Map{"meeting": meeting}})
+}
+
+func (h *WebhookHandler) DeleteMeeting(c *fiber.Ctx) error {
+	userID := c.Locals("userID").(uint)
+	id, err := parseID(c, "id")
+	if err != nil {
+		return webhookError(c, 400, "INVALID_PARAM", "ID inválido")
+	}
+	if err := h.meetingSvc.DeleteMeeting(id, userID); err != nil {
+		return webhookError(c, 404, "NOT_FOUND", "Reunión no encontrada")
+	}
+	return c.JSON(fiber.Map{"success": true, "data": fiber.Map{"deleted": true}})
+}
+
+// ─── List / Get / Delete — Suscripciones ─────────────────────────────────────
+
+func (h *WebhookHandler) ListSubscriptions(c *fiber.Ctx) error {
+	userID := c.Locals("userID").(uint)
+	offset := c.QueryInt("offset", 0)
+	limit := c.QueryInt("limit", 20)
+
+	list, total, err := h.subscriptionSvc.ListSubscriptions(userID, offset, limit)
+	if err != nil {
+		return webhookError(c, 500, "INTERNAL_ERROR", err.Error())
+	}
+	return c.JSON(fiber.Map{
+		"success": true,
+		"data":    fiber.Map{"list": list, "total": total, "offset": offset, "limit": limit},
+	})
+}
+
+func (h *WebhookHandler) GetSubscription(c *fiber.Ctx) error {
+	userID := c.Locals("userID").(uint)
+	id, err := parseID(c, "id")
+	if err != nil {
+		return webhookError(c, 400, "INVALID_PARAM", "ID inválido")
+	}
+	sub, err := h.subscriptionSvc.GetSubscription(id, userID)
+	if err != nil {
+		return webhookError(c, 404, "NOT_FOUND", "Suscripción no encontrada")
+	}
+	return c.JSON(fiber.Map{"success": true, "data": fiber.Map{"subscription": sub}})
+}
+
+func (h *WebhookHandler) DeleteSubscription(c *fiber.Ctx) error {
+	userID := c.Locals("userID").(uint)
+	id, err := parseID(c, "id")
+	if err != nil {
+		return webhookError(c, 400, "INVALID_PARAM", "ID inválido")
+	}
+	if err := h.subscriptionSvc.DeleteSubscription(id, userID); err != nil {
+		return webhookError(c, 404, "NOT_FOUND", "Suscripción no encontrada")
+	}
+	return c.JSON(fiber.Map{"success": true, "data": fiber.Map{"deleted": true}})
 }
 
 // ─── Helpers internos ────────────────────────────────────────────────────────
