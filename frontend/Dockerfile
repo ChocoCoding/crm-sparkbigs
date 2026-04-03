@@ -20,12 +20,15 @@ RUN npx nx build crm-sparkbigs --configuration=production
 # ── Stage 2: Servir con Nginx ───────────────────────────────
 FROM nginx:alpine
 
-# Copiar config de nginx para SPA (redirige todo a index.html)
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Copiar template de nginx (usa $PORT de Railway)
+COPY nginx.conf.template /etc/nginx/templates/default.conf.template
 
 # Copiar los archivos compilados
 COPY --from=builder /app/dist/apps/crm-sparkbigs/browser /usr/share/nginx/html
 
-EXPOSE 80
+# Railway inyecta PORT automáticamente
+ENV PORT=80
+
+EXPOSE ${PORT}
 
 CMD ["nginx", "-g", "daemon off;"]
