@@ -350,7 +350,8 @@ GET /webhooks/v1/meetings?offset=0&limit=20
         "start_at": "2026-04-10T10:00:00Z",
         "duration_min": 60,
         "status": "scheduled",
-        "notes": "Llevar presentación"
+        "notes": "Llevar presentación",
+        "summary": "El cliente mostró interés en el plan Pro. Próximo paso: enviar propuesta."
       }
     ],
     "total": 1,
@@ -381,7 +382,8 @@ POST /webhooks/v1/meetings
   "start_at": "2026-04-15T09:30:00Z",
   "duration_min": 45,
   "status": "scheduled",
-  "notes": "Revisar propuesta comercial"
+  "notes": "Revisar propuesta comercial",
+  "summary": ""
 }
 ```
 
@@ -389,7 +391,8 @@ Campos obligatorios: `title`, `company_id`, `start_at`
 `contact_id` es opcional  
 `start_at` debe estar en formato **RFC3339**: `YYYY-MM-DDTHH:MM:SSZ`  
 `duration_min` por defecto es `60`  
-Valores de `status`: `scheduled` | `completed` | `cancelled`
+Valores de `status`: `scheduled` | `completed` | `cancelled`  
+`summary` es opcional — campo de texto libre para el resumen post-reunión (acuerdos, próximos pasos, etc.)
 
 ### 6.4 Actualizar reunión
 
@@ -401,9 +404,12 @@ PUT /webhooks/v1/meetings/{{ $json.id }}
 ```json
 {
   "status": "completed",
-  "notes": "Reunión realizada. Cliente interesado en plan Pro."
+  "notes": "Reunión realizada. Cliente interesado en plan Pro.",
+  "summary": "Acordado enviar propuesta antes del viernes. Juan confirmó presupuesto de 5.000€. Próxima reunión: 22 abril."
 }
 ```
+
+> El campo `summary` es ideal para actualizarlo desde n8n justo después de la reunión, por ejemplo al recibir un webhook de Notion, Google Meet o un formulario de feedback del equipo.
 
 ### 6.5 Eliminar reunión
 
@@ -606,7 +612,30 @@ Condición: {{ $json.success }} === false
 
 ---
 
-### Flujo 4: Sincronización con CRM externo (importar contactos)
+### Flujo 4: Guardar resumen automáticamente tras una reunión
+
+Útil para capturar el resumen desde un formulario de Google Forms, Typeform, Notion, etc.
+
+```
+[Webhook Trigger — formulario post-reunión]
+    (campos: meeting_id, summary_text)
+    ↓
+[HTTP Request — PUT /webhooks/v1/meetings/{{ $json.meeting_id }}]
+    Method: PUT
+    Header: X-API-Key: spk_...
+    Body: {
+      "status": "completed",
+      "summary": "{{ $json.summary_text }}"
+    }
+    ↓
+[IF: $json.success === true]
+    → TRUE: [Slack — "Resumen guardado para reunión {{ $json.data.meeting.title }}"]
+    → FALSE: [Slack — "Error al guardar resumen: {{ $json.error.message }}"]
+```
+
+---
+
+### Flujo 5: Sincronización con CRM externo (importar contactos)
 
 ```
 [HTTP Request — GET API externa]

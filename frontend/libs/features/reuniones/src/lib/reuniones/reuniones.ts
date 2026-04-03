@@ -43,6 +43,10 @@ export class ReunionesComponent implements OnInit {
   readonly editingId  = signal<number | null>(null);
   readonly isEditing  = computed(() => this.editingId() !== null);
 
+  // Modal de resumen (solo lectura)
+  readonly summaryMeeting = signal<Meeting | null>(null);
+  readonly showSummary    = computed(() => this.summaryMeeting() !== null);
+
   // ─── Calendario ──────────────────────────────────────────────
   readonly calendarDate = signal(new Date());
 
@@ -101,7 +105,7 @@ export class ReunionesComponent implements OnInit {
   readonly form = signal<MeetingPayload & { start_date: string; start_time: string }>({
     title: '', company_id: 0, contact_id: null,
     start_at: '', start_date: '', start_time: '10:00',
-    duration_min: 60, status: 'scheduled', notes: '',
+    duration_min: 60, status: 'scheduled', notes: '', summary: '',
   });
 
   ngOnInit(): void {
@@ -168,7 +172,7 @@ export class ReunionesComponent implements OnInit {
     this.form.set({
       title: '', company_id: 0, contact_id: null,
       start_at: '', start_date: today, start_time: '10:00',
-      duration_min: 60, status: 'scheduled', notes: '',
+      duration_min: 60, status: 'scheduled', notes: '', summary: '',
     });
     this.showModal.set(true);
   }
@@ -182,12 +186,15 @@ export class ReunionesComponent implements OnInit {
       title: meeting.title, company_id: meeting.company_id,
       contact_id: meeting.contact_id, start_at: meeting.start_at,
       start_date, start_time, duration_min: meeting.duration_min,
-      status: meeting.status, notes: meeting.notes,
+      status: meeting.status, notes: meeting.notes, summary: meeting.summary,
     });
     this.showModal.set(true);
   }
 
   closeModal(): void { this.showModal.set(false); this.editingId.set(null); }
+
+  openSummary(meeting: Meeting): void  { this.summaryMeeting.set(meeting); }
+  closeSummary(): void                 { this.summaryMeeting.set(null); }
 
   patchForm(field: string, value: string | number | null): void {
     this.form.update(f => ({ ...f, [field]: value }));
@@ -202,7 +209,8 @@ export class ReunionesComponent implements OnInit {
     const startAt = new Date(`${f.start_date}T${f.start_time}:00`).toISOString();
     const payload: MeetingPayload = {
       title: f.title, company_id: f.company_id, contact_id: f.contact_id || null,
-      start_at: startAt, duration_min: f.duration_min, status: f.status, notes: f.notes,
+      start_at: startAt, duration_min: f.duration_min, status: f.status,
+      notes: f.notes, summary: f.summary,
     };
 
     this.saving.set(true);

@@ -256,6 +256,7 @@ func (h *WebhookHandler) CreateMeeting(c *fiber.Ctx) error {
 		StartAt     string `json:"start_at"` // RFC3339
 		DurationMin int    `json:"duration_min"`
 		Notes       string `json:"notes"`
+		Summary     string `json:"summary"`
 		Status      string `json:"status"`
 	}
 	if err := c.BodyParser(&body); err != nil {
@@ -284,6 +285,7 @@ func (h *WebhookHandler) CreateMeeting(c *fiber.Ctx) error {
 		StartAt:     startAt,
 		DurationMin: body.DurationMin,
 		Notes:       body.Notes,
+		Summary:     body.Summary,
 		Status:      body.Status,
 	}
 	if err := h.meetingSvc.CreateMeeting(meeting); err != nil {
@@ -309,6 +311,7 @@ func (h *WebhookHandler) UpdateMeeting(c *fiber.Ctx) error {
 		StartAt     string `json:"start_at"`
 		DurationMin int    `json:"duration_min"`
 		Notes       string `json:"notes"`
+		Summary     string `json:"summary"`
 		Status      string `json:"status"`
 	}
 	if err := c.BodyParser(&body); err != nil {
@@ -327,6 +330,9 @@ func (h *WebhookHandler) UpdateMeeting(c *fiber.Ctx) error {
 	}
 	if body.Notes != "" {
 		existing.Notes = body.Notes
+	}
+	if body.Summary != "" {
+		existing.Summary = body.Summary
 	}
 	if body.Status != "" {
 		existing.Status = body.Status

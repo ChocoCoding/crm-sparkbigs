@@ -92,6 +92,7 @@ export interface Meeting {
   duration_min: number;
   status: 'scheduled' | 'completed' | 'cancelled';
   notes: string;
+  summary: string;
   metadata?: Record<string, unknown>;
   created_at: string;
   updated_at: string;

@@ -12,6 +12,7 @@ export interface MeetingPayload {
   duration_min?: number;
   status?: Meeting['status'];
   notes?: string;
+  summary?: string;
 }
 
 @Injectable({ providedIn: 'root' })

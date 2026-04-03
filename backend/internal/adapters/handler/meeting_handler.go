@@ -37,6 +37,7 @@ type meetingBody struct {
 	DurationMin int     `json:"duration_min"`
 	Status      string  `json:"status"`
 	Notes       string  `json:"notes"`
+	Summary     string  `json:"summary"`
 }
 
 func (b *meetingBody) toModel(userID uint) (*domain.Meeting, error) {
@@ -64,6 +65,7 @@ func (b *meetingBody) toModel(userID uint) (*domain.Meeting, error) {
 		DurationMin: duration,
 		Status:      status,
 		Notes:       b.Notes,
+		Summary:     b.Summary,
 	}, nil
 }
 

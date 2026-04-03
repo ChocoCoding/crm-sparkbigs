@@ -58,6 +58,7 @@ func (s *meetingService) UpdateMeeting(meeting *domain.Meeting, userID uint) err
 	existing.DurationMin = meeting.DurationMin
 	existing.Status      = meeting.Status
 	existing.Notes       = meeting.Notes
+	existing.Summary     = meeting.Summary
 	return s.repo.Update(existing)
 }
 

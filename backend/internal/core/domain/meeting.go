@@ -23,6 +23,7 @@ type Meeting struct {
 	DurationMin int       `gorm:"default:60"                   json:"duration_min"`  // Duración en minutos
 	Status      string    `gorm:"size:50;default:scheduled"    json:"status"`        // "scheduled"|"completed"|"cancelled"
 	Notes       string    `gorm:"type:text"                    json:"notes"`
+	Summary     string    `gorm:"type:text"                    json:"summary"`  // Resumen post-reunión
 
 	Metadata datatypes.JSON `json:"metadata"`
 
