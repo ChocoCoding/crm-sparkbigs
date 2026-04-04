@@ -34,8 +34,8 @@ func NewWebhookHandler(
 
 // RegisterRoutes registra las rutas bajo /webhooks/v1/.
 // El middleware de API Key se aplica al grupo completo en main.go.
-func (h *WebhookHandler) RegisterRoutes(app *fiber.App, apiKeyMiddleware fiber.Handler) {
-	wh := app.Group("/webhooks/v1", apiKeyMiddleware)
+func (h *WebhookHandler) RegisterRoutes(app *fiber.App, middlewares ...fiber.Handler) {
+	wh := app.Group("/webhooks/v1", middlewares...)
 
 	// Empresas — CRUD completo
 	wh.Get("/companies", h.ListCompanies)

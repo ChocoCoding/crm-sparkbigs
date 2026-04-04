@@ -151,13 +151,7 @@ func main() {
 	})
 
 	apiKeyMw := middleware.NewAPIKeyMiddleware(apiKeySvc)
-	webhookHandler.RegisterRoutes(app, fiber.Handler(func(c *fiber.Ctx) error {
-		// Aplicar rate limiter primero, luego validar la API Key
-		if err := webhookRateLimiter(c); err != nil {
-			return err
-		}
-		return apiKeyMw(c)
-	}))
+	webhookHandler.RegisterRoutes(app, webhookRateLimiter, apiKeyMw)
 
 	// ── 9. Arrancar servidor ─────────────────────────────────────
 	port := getEnvOrDefault("PORT", "8080")
