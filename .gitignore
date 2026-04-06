@@ -11,3 +11,6 @@ frontend/.nx/cache/
 *.log
 .DS_Store
 Thumbs.db
+frontend/libs/data-access/src/lib/environment.ts
+backend/go.mod
+backend/cmd/server/main.go
