@@ -1,0 +1,8 @@
+{
+  "name": "lead-scraper",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/features/lead-scraper/src",
+  "projectType": "library",
+  "tags": [],
+  "targets": {}
+}

@@ -50,6 +50,12 @@ export const appRoutes: Routes = [
         (m) => m.ConfiguracionComponent
       ),
   },
+  {
+    path: 'lead-scraper',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('@miapp/features/lead-scraper').then((m) => m.LeadScraperComponent),
+  },
 
   {
     path: 'admin',

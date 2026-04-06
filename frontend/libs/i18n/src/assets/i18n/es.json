@@ -11,7 +11,8 @@
     "FINANZAS": "Finanzas",
     "CONFIGURACION": "Configuración",
     "LOGOUT": "Cerrar Sesión",
-    "ADMIN": "Administración"
+    "ADMIN": "Administración",
+    "LEAD_SCRAPER": "Lead Scraper"
   },
   "COMMON": {
     "REQUIRED": "*",

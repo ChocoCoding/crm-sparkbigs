@@ -15,6 +15,7 @@ import (
 	"github.com/sparkbigs/crm/internal/core/domain"
 	"github.com/sparkbigs/crm/internal/core/services"
 	"gorm.io/driver/mysql"
+	// "gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -25,10 +26,17 @@ func main() {
 	}
 
 	// ── 2. Conexión a la base de datos ───────────────────────────
+	// ▶️ PRODUCCIÓN (MySQL)
 	dsn := mustEnv("MYSQL_DSN")
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
-		DisableForeignKeyConstraintWhenMigrating: true,
-	})
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	
+	// ▶️ DESARROLLO LOCAL (SQLite)
+	// Descomentar lo de abajo (y comentar lo de arriba de MySQL) para usar entorno local sin base de datos externa.
+	// Nota: Si descomentas esto, asegúrate de importar "gorm.io/driver/sqlite" y ejecutar `go mod tidy` para descargar el driver.
+	// db, err := gorm.Open(sqlite.Open("crm_local.db"), &gorm.Config{
+	// 	DisableForeignKeyConstraintWhenMigrating: true,
+	// })
+	
 	if err != nil {
 		log.Fatalf("Error conectando a MySQL: %v", err)
 	}
@@ -46,6 +54,10 @@ func main() {
 		&domain.Subscription{},
 		&domain.Setting{},
 		&domain.APIKey{},
+		// Lead Scraper
+		&domain.ScrapeJob{},
+		&domain.ScrapedLead{},
+		&domain.ScrapeAPILog{},
 	); err != nil {
 		log.Fatalf("Error en AutoMigrate: %v", err)
 	}
@@ -62,6 +74,10 @@ func main() {
 	settingRepo      := storage.NewMysqlSettingRepository(db)
 	dashboardRepo    := storage.NewMysqlDashboardRepository(db)
 	apiKeyRepo       := storage.NewMysqlAPIKeyRepository(db)
+	// Lead Scraper
+	scrapeJobRepo    := storage.NewMysqlScrapeJobRepository(db)
+	scrapedLeadRepo  := storage.NewMysqlScrapedLeadRepository(db)
+	scrapeLogRepo    := storage.NewMysqlScrapeAPILogRepository(db)
 
 	// ── 4. Servicios core (lógica de negocio) ────────────────────
 	jwtSecret := mustEnv("JWT_SECRET")
@@ -76,6 +92,7 @@ func main() {
 	settingSvc      := services.NewSettingService(settingRepo)
 	dashboardSvc    := services.NewDashboardService(dashboardRepo)
 	apiKeySvc       := services.NewAPIKeyService(apiKeyRepo)
+	leadScraperSvc  := services.NewLeadScraperService(scrapeJobRepo, scrapedLeadRepo, scrapeLogRepo, companyRepo, contactRepo)
 
 	// ── Seed ─────────────────────────────────────────────────────
 	seedDatabase(db, authSvc)
@@ -92,6 +109,7 @@ func main() {
 	dashboardHandler    := handler.NewDashboardHandler(dashboardSvc)
 	apiKeyHandler       := handler.NewAPIKeyHandler(apiKeySvc)
 	webhookHandler      := handler.NewWebhookHandler(companySvc, contactSvc, meetingSvc, subscriptionSvc)
+	leadScraperHandler  := handler.NewLeadScraperHandler(leadScraperSvc)
 
 	// ── 6. Fiber + Middleware global ─────────────────────────────
 	app := fiber.New(fiber.Config{
@@ -107,7 +125,7 @@ func main() {
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: mustEnv("CORS_ORIGINS"),
 		AllowHeaders: "Origin, Content-Type, Accept, Authorization, X-API-Key",
-		AllowMethods: "GET, POST, PUT, DELETE, OPTIONS",
+		AllowMethods: "GET, POST, PUT, PATCH, DELETE, OPTIONS",
 	}))
 
 	// JWT protege todas las rutas /api/v1/* (bypass automático de /webhooks/)
@@ -128,6 +146,7 @@ func main() {
 	settingHandler.RegisterRoutes(app)
 	dashboardHandler.RegisterRoutes(app)
 	apiKeyHandler.RegisterRoutes(app)
+	leadScraperHandler.RegisterRoutes(app)
 
 	// ── 8. Rutas Webhook (protegidas por API Key + rate limiter) ──
 	// Rate limit: 120 peticiones/minuto por clave — protección contra abuso

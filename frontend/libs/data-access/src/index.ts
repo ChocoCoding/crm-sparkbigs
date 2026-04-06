@@ -12,6 +12,9 @@ export type {
   Setting,
   AuthTokens,
   AuthLoginData,
+  ScrapeJob,
+  ScrapedLead,
+  ScrapeAPILog,
 } from './lib/models';
 
 // Servicios
@@ -30,6 +33,8 @@ export { SettingService } from './lib/setting.service';
 export type { SettingPayload } from './lib/setting.service';
 export { DashboardService } from './lib/dashboard.service';
 export type { DashboardStats } from './lib/dashboard.service';
+export { LeadScraperService } from './lib/lead-scraper.service';
+export type { ScrapePayload } from './lib/lead-scraper.service';
 
 // Infraestructura
 export { authInterceptor } from './lib/auth.interceptor';

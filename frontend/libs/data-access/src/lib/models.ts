@@ -130,6 +130,92 @@ export interface Setting {
   input_type: 'text' | 'number' | 'boolean' | 'select' | 'email';
 }
 
+// ─── Modelos de Lead Scraper ───────────────────────────────────────────────────
+
+export interface ScrapeJob {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  search_query: string;
+  location: string;
+  max_results: number;
+  status: 'pending' | 'running' | 'completed' | 'error';
+  total_companies: number;
+  processed_companies: number;
+  completed_at: string | null;
+  lead_count?: number;
+  avg_score?: number;
+}
+
+export interface ScrapedLead {
+  id: number;
+  created_at: string;
+  updated_at: string;
+  job_id: string;
+
+  nombre_empresa: string;
+  google_place_id: string;
+  email: string;
+  telefono: string;
+  website: string;
+  direccion: string;
+  ciudad: string;
+  provincia: string;
+  pais: string;
+  codigo_postal: string;
+  latitud: number | null;
+  longitud: number | null;
+  categoria_google: string;
+  rating_google: number | null;
+  num_reviews: number;
+  tiene_web: boolean;
+
+  presencia_redes_sociales: boolean;
+  linkedin_url: string;
+  instagram_url: string;
+  facebook_url: string;
+
+  anios_en_mercado: number;
+  descripcion_raw: string;
+
+  nicho_especifico: string;
+  descripcion_negocio: string;
+  madurez_digital: string;
+  necesidades_rrhh: string;
+  necesidades_ventas: string;
+  angulo_transformacion: string;
+  gran_potencial_estrategico: boolean;
+  score_lead: number;
+  razones_score: string;
+  icebreaker: string;
+  analisis_completo: string;
+
+  contactos_clasificados: Array<Record<string, string>>;
+  emails_adicionales: string[];
+
+  fuente: string;
+  estado: 'nuevo' | 'contactado' | 'descartado' | 'convertido';
+}
+
+export interface ScrapeAPILog {
+  id: number;
+  created_at: string;
+  job_id: string;
+  company_name: string;
+  step_name: string;
+  step_index: number;
+  request_summary: string;
+  response_summary: string;
+  status: 'success' | 'error' | 'pending';
+  duration_ms: number;
+  error: string;
+}
+
+export interface LeadScraperEvent {
+  event: string;
+  data: any;
+}
+
 // ─── Payloads de Auth ────────────────────────────────────────────────────────
 
 export interface AuthTokens {

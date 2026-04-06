@@ -26,7 +26,8 @@
       "@miapp/features/contactos": ["libs/features/contactos/src/index.ts"],
       "@miapp/features/finanzas": ["libs/features/finanzas/src/index.ts"],
       "@miapp/features/configuracion": ["libs/features/configuracion/src/index.ts"],
-      "@miapp/features/reuniones": ["libs/features/reuniones/src/index.ts"]
+      "@miapp/features/reuniones": ["libs/features/reuniones/src/index.ts"],
+      "@miapp/features/lead-scraper": ["libs/features/lead-scraper/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

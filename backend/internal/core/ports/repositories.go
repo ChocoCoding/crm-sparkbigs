@@ -108,3 +108,34 @@ type SettingRepository interface {
 	FindByKey(userID uint, key string) (*domain.Setting, error)
 	Delete(id uint) error
 }
+
+// ═══════════════════════════════════════════════════════════
+// Lead Scraper — Repositorios
+// ═══════════════════════════════════════════════════════════
+
+// ScrapeJobRepository define las operaciones de persistencia para ScrapeJob.
+type ScrapeJobRepository interface {
+	Create(job *domain.ScrapeJob) error
+	FindByID(id string) (*domain.ScrapeJob, error)
+	FindAll(offset, limit int) ([]domain.ScrapeJob, int64, error)
+	UpdateStatus(id, status string) error
+	UpdateProgress(id string, total, processed int) error
+	IncrementProcessed(id string) error
+}
+
+// ScrapedLeadRepository define las operaciones de persistencia para ScrapedLead.
+type ScrapedLeadRepository interface {
+	Create(lead *domain.ScrapedLead) error
+	FindByID(id uint) (*domain.ScrapedLead, error)
+	FindByJobID(jobID string) ([]domain.ScrapedLead, error)
+	FindAll(offset, limit int) ([]domain.ScrapedLead, int64, error)
+	FindExisting(googlePlaceID, name, city string) (*domain.ScrapedLead, error)
+	UpdateEstado(id uint, estado string) error
+	Delete(id uint) error
+}
+
+// ScrapeAPILogRepository define las operaciones de persistencia para ScrapeAPILog.
+type ScrapeAPILogRepository interface {
+	Create(log *domain.ScrapeAPILog) error
+	FindByJobID(jobID string) ([]domain.ScrapeAPILog, error)
+}

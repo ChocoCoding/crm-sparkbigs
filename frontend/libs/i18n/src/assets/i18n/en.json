@@ -7,9 +7,12 @@
     "INICIO": "Home",
     "EMPRESAS": "Companies",
     "CONTACTOS": "Contacts",
+    "REUNIONES": "Meetings",
     "FINANZAS": "Finance",
     "CONFIGURACION": "Settings",
-    "LOGOUT": "Logout"
+    "LOGOUT": "Logout",
+    "ADMIN": "Administration",
+    "LEAD_SCRAPER": "Lead Scraper"
   },
   "COMMON": {
     "REQUIRED": "*",

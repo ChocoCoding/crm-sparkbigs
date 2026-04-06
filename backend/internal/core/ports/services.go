@@ -111,3 +111,31 @@ type SettingService interface {
 	SeedDefaults(userID uint) error
 	DeleteSetting(id, userID uint) error
 }
+
+// ═══════════════════════════════════════════════════════════
+// Lead Scraper — Servicio
+// ═══════════════════════════════════════════════════════════
+
+// LeadScraperService gestiona el pipeline de scraping y los leads generados.
+type LeadScraperService interface {
+	// Pipeline
+	StartScrape(query, location string, maxResults int) (jobID string, err error)
+	StreamJob(jobID string) (<-chan domain.LeadScraperEvent, func())
+
+	// Jobs
+	GetJob(jobID string) (*domain.ScrapeJob, error)
+	ListJobs(offset, limit int) ([]domain.ScrapeJob, int64, error)
+
+	// Leads
+	GetLead(id uint) (*domain.ScrapedLead, error)
+	GetLeadsByJob(jobID string) ([]domain.ScrapedLead, error)
+	ListLeads(offset, limit int) ([]domain.ScrapedLead, int64, error)
+	UpdateLeadEstado(id uint, estado string) error
+	DeleteLead(id uint) error
+
+	// API Logs
+	GetAPILogs(jobID string) ([]domain.ScrapeAPILog, error)
+
+	// Importar lead al CRM como Company + Contact
+	ImportToCRM(leadID, userID uint) (*domain.Company, *domain.Contact, error)
+}

@@ -1,0 +1,316 @@
+<div style="display:flex;min-height:100vh;background:var(--surface,#f4f6fb);">
+  <!-- Sidebar CRM -->
+  <app-sidebar />
+
+  <main class="page-main" style="flex:1;overflow:auto;min-width:0;padding:24px;">
+    
+    <!-- ── Header ───────────────────────────────────────────── -->
+    <div style="display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;margin-bottom:32px;gap:16px;">
+      <div>
+        <h1 style="font-family:'Manrope',sans-serif;font-size:26px;font-weight:800;color:var(--on-surface,#1a1c2e);letter-spacing:-0.03em;margin:0 0 4px;">
+          Lead Scraper Autónomo
+        </h1>
+        <p style="font-family:'Inter',sans-serif;font-size:13px;color:var(--on-surface-subtle,#9a9db8);margin:0;">
+          Buscador basado en IA para descubrir leads B2B estratégicos (Sincron-IA)
+        </p>
+      </div>
+
+      <!-- Tabs -->
+      <div style="display:flex;background:rgba(92,95,122,0.06);padding:4px;border-radius:12px;">
+        <button (click)="setTab('dashboard')"
+          [style]="activeTab() === 'dashboard' 
+            ? 'background:var(--surface-lowest,#fff);color:var(--on-surface,#1a1c2e);box-shadow:0 2px 8px rgba(25,28,30,0.08);' 
+            : 'background:transparent;color:var(--on-surface-subtle,#9a9db8);'"
+          style="padding:8px 16px;border:none;border-radius:8px;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 200ms;">
+          Dashboard
+        </button>
+        <button (click)="setTab('history')"
+          [style]="activeTab() === 'history' 
+            ? 'background:var(--surface-lowest,#fff);color:var(--on-surface,#1a1c2e);box-shadow:0 2px 8px rgba(25,28,30,0.08);' 
+            : 'background:transparent;color:var(--on-surface-subtle,#9a9db8);'"
+          style="padding:8px 16px;border:none;border-radius:8px;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 200ms;">
+          Búsquedas
+        </button>
+        <button (click)="setTab('leads')"
+          [style]="activeTab() === 'leads' 
+            ? 'background:var(--surface-lowest,#fff);color:var(--on-surface,#1a1c2e);box-shadow:0 2px 8px rgba(25,28,30,0.08);' 
+            : 'background:transparent;color:var(--on-surface-subtle,#9a9db8);'"
+          style="padding:8px 16px;border:none;border-radius:8px;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all 200ms;">
+          Todos los Leads
+        </button>
+      </div>
+    </div>
+
+    @if (activeTab() === 'dashboard') {
+      <!-- ── Search Controls ──────────────────────────────────── -->
+      <div style="background:var(--surface-lowest,#fff);border-radius:16px;padding:24px;box-shadow:var(--shadow-ambient,0 12px 32px rgba(25,28,30,0.06));margin-bottom:32px;">
+        <div style="display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:end;">
+          <!-- Búsqueda -->
+          <div>
+            <label style="display:block;font-family:'Inter',sans-serif;font-size:11.5px;font-weight:600;color:var(--on-surface-variant,#5c5f7a);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">Búsqueda</label>
+            <input [(ngModel)]="searchQuery" type="text" placeholder="Ej: agencias de marketing" [disabled]="isScraping()"
+              style="width:100%;padding:12px 16px;background:var(--surface,#f4f6fb);border:none;border-radius:10px;font-family:'Inter',sans-serif;font-size:13.5px;color:var(--on-surface,#1a1c2e);outline:none;transition:box-shadow 200ms;"
+              onfocus="this.style.boxShadow='0 0 0 2px #00ced1'" onblur="this.style.boxShadow='none'" />
+          </div>
+          <!-- Ubicación -->
+          <div>
+            <label style="display:block;font-family:'Inter',sans-serif;font-size:11.5px;font-weight:600;color:var(--on-surface-variant,#5c5f7a);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">Ubicación</label>
+            <input [(ngModel)]="searchLocation" type="text" placeholder="Ej: Madrid" [disabled]="isScraping()"
+              style="width:100%;padding:12px 16px;background:var(--surface,#f4f6fb);border:none;border-radius:10px;font-family:'Inter',sans-serif;font-size:13.5px;color:var(--on-surface,#1a1c2e);outline:none;transition:box-shadow 200ms;"
+              onfocus="this.style.boxShadow='0 0 0 2px #00ced1'" onblur="this.style.boxShadow='none'" />
+          </div>
+          <!-- Resultados y Submit -->
+          <div>
+            <div style="display:flex;gap:12px;align-items:end;">
+              <div style="width:100px;">
+                <label style="display:block;font-family:'Inter',sans-serif;font-size:11.5px;font-weight:600;color:var(--on-surface-variant,#5c5f7a);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">Max</label>
+                <input [(ngModel)]="maxResults" type="number" min="1" max="50" [disabled]="isScraping()"
+                  style="width:100%;padding:12px 16px;background:var(--surface,#f4f6fb);border:none;border-radius:10px;font-family:'Inter',sans-serif;font-size:13.5px;color:var(--on-surface,#1a1c2e);outline:none;" />
+              </div>
+              
+              <button (click)="startScrape()" [disabled]="isScraping() || !searchQuery() || !searchLocation()"
+                [style.opacity]="(isScraping() || !searchQuery() || !searchLocation()) ? '0.5' : '1'"
+                style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 20px;background:linear-gradient(135deg,#00ced1 0%,#00969a 100%);color:#fff;font-family:'Inter',sans-serif;font-size:13.5px;font-weight:600;border:none;border-radius:10px;cursor:pointer;box-shadow:0 4px 14px rgba(0,206,209,0.28);">
+                @if (isScraping()) {
+                  Extrayendo...
+                } @else {
+                  Buscar Leads
+                }
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Workspace Layout (Logs + Leads) ────────────────── -->
+      @if (currentJobId() || isScraping()) {
+        <div style="display:grid;grid-template-columns:1fr 2fr;gap:24px;min-height:500px;">
+          
+          <!-- Terminal (Logs) -->
+          <div style="background:#131b52;border-radius:16px;display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--shadow-ambient,0 12px 32px rgba(25,28,30,0.06));">
+            <div style="padding:16px;background:rgba(0,0,0,0.2);display:flex;justify-content:space-between;align-items:center;">
+              <h3 style="margin:0;font-family:'Manrope',sans-serif;font-size:14px;font-weight:700;color:#fff;">Pipeline Log</h3>
+              @if (isScraping()) {
+                <span style="display:flex;align-items:center;gap:6px;font-family:'Inter',sans-serif;font-size:11px;color:#00ced1;font-weight:600;">
+                  <span style="width:8px;height:8px;background:#00ced1;border-radius:50%;box-shadow:0 0 10px #00ced1;animation:pulse 2s infinite;"></span>
+                  Online
+                </span>
+              }
+            </div>
+            
+            <div style="flex:1;padding:16px;overflow-y:auto;font-family:monospace;font-size:11.5px;color:rgba(255,255,255,0.7);display:flex;flex-direction:column;gap:8px;">
+              <div style="color:#00ced1;margin-bottom:8px;">
+                > Job ID: {{ currentJobId() || 'generando...' }}<br/>
+                > Status: {{ currentJobStatus() }}<br/>
+                > Processed: {{ currentJobProcessed() }} / {{ currentJobTotal() || '?' }}
+              </div>
+              
+              @for (log of pipelineLogs(); track $index) {
+                <div style="border-left:2px solid;padding-left:8px;"
+                     [style.borderColor]="log.event === 'step_error' || log.event === 'pipeline_error' ? '#ff4b4b' : (log.event === 'step_done' ? '#00e676' : 'rgba(255,255,255,0.2)')">
+                  <span style="color:rgba(255,255,255,0.4)">[{{ log.event }}]</span>
+                  @if (log.label) { <span style="font-weight:bold;color:#fff;">{{ log.label }}:</span> }
+                  @if (log.name) { <span style="color:#fff;">{{ log.name }}</span> }
+                  @if (log.detail) { <span>({{ log.detail }})</span> }
+                  @if (log.error) { <span style="color:#ff4b4b;">Error: {{ log.error }}</span> }
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Leads Resultados -->
+          <div style="background:var(--surface-lowest,#fff);border-radius:16px;box-shadow:var(--shadow-ambient,0 12px 32px rgba(25,28,30,0.06));overflow:hidden;display:flex;flex-direction:column;">
+            <div style="padding:16px 24px;border-bottom:1px solid rgba(92,95,122,0.08);display:flex;justify-content:space-between;align-items:center;">
+              <h3 style="margin:0;font-family:'Manrope',sans-serif;font-size:16px;font-weight:700;color:var(--on-surface,#1a1c2e);">Leads ({{ scrapedLeads().length }})</h3>
+            </div>
+            
+            <div style="flex:1;overflow-y:auto;padding:24px;display:flex;flex-direction:column;gap:16px;">
+              @for (lead of scrapedLeads(); track lead.id) {
+                <div style="border:1px solid rgba(92,95,122,0.15);border-radius:12px;padding:20px;background:var(--surface-lowest,#fff);"
+                     [style.borderColor]="lead.score_lead >= 80 ? 'rgba(0,206,209,0.3)' : (lead.score_lead >= 50 ? 'rgba(235,160,0,0.3)' : '')"
+                     [style.boxShadow]="lead.score_lead >= 80 ? '0 8px 24px rgba(0,206,209,0.08)' : ''">
+                  
+                  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
+                    <div>
+                      <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;">
+                        <h4 style="margin:0;font-family:'Manrope',sans-serif;font-size:16px;font-weight:800;color:var(--on-surface,#1a1c2e);">{{ lead.nombre_empresa }}</h4>
+                        <!-- Score Badge -->
+                        <span [style.background]="lead.score_lead >= 80 ? '#e0fcfb' : (lead.score_lead >= 50 ? '#fff8e1' : '#f4f6fb')"
+                              [style.color]="lead.score_lead >= 80 ? '#007a72' : (lead.score_lead >= 50 ? '#b27b00' : '#5c5f7a')"
+                              style="font-family:'Inter',sans-serif;font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;">
+                          SCORE: {{ lead.score_lead }}
+                        </span>
+                      </div>
+                      <p style="margin:0;font-family:'Inter',sans-serif;font-size:13px;color:var(--on-surface-variant,#5c5f7a);">{{ lead.categoria_google }} • {{ lead.ciudad }}, {{ lead.pais }}</p>
+                    </div>
+                    
+                    @if (lead.estado !== 'convertido') {
+                      <div style="display:flex;gap:8px;align-items:center;">
+                        <select [(ngModel)]="lead.estado" (change)="updateLeadEstado(lead.id, lead.estado)"
+                          style="padding:8px 12px;background:var(--surface,#f4f6fb);border:1px solid rgba(92,95,122,0.2);border-radius:8px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;color:var(--on-surface,#1a1c2e);outline:none;">
+                          <option value="nuevo">Nuevo</option>
+                          <option value="potencial">Potencial</option>
+                          <option value="contactado">Contactado</option>
+                          <option value="descartado">Descartado</option>
+                        </select>
+                        <button (click)="importLead(lead.id)"
+                          style="padding:8px 16px;background:var(--on-surface,#1a1c2e);color:#fff;border:none;border-radius:8px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;">
+                          Importar a CRM
+                        </button>
+                      </div>
+                    } @else {
+                      <span style="padding:8px 16px;background:#e8f5e9;color:#006e2a;border-radius:8px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;">Importado</span>
+                    }
+                  </div>
+
+                  <div style="display:grid;grid-template-columns:repeat(4, 1fr);gap:16px;margin-bottom:16px;">
+                    <div>
+                      <span style="display:block;font-family:'Inter',sans-serif;font-size:10px;font-weight:600;color:var(--on-surface-subtle,#9a9db8);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">Email</span>
+                      <span style="font-family:'Inter',sans-serif;font-size:13px;color:var(--on-surface,#1a1c2e);font-weight:500;word-break:break-all;">{{ lead.email || '—' }}</span>
+                    </div>
+                    <div>
+                      <span style="display:block;font-family:'Inter',sans-serif;font-size:10px;font-weight:600;color:var(--on-surface-subtle,#9a9db8);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">Web</span>
+                      @if (lead.tiene_web) {
+                        <a [href]="lead.website" target="_blank" style="font-family:'Inter',sans-serif;font-size:13px;color:#00ced1;font-weight:500;text-decoration:none;">Visitar Web</a>
+                      } @else { <span style="font-family:'Inter',sans-serif;font-size:13px;color:var(--on-surface-variant,#5c5f7a);">—</span> }
+                    </div>
+                    <div>
+                      <span style="display:block;font-family:'Inter',sans-serif;font-size:10px;font-weight:600;color:var(--on-surface-subtle,#9a9db8);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">Teléfono</span>
+                      <span style="font-family:'Inter',sans-serif;font-size:13px;color:var(--on-surface,#1a1c2e);font-weight:500;">{{ lead.telefono || '—' }}</span>
+                    </div>
+                    <div>
+                      <span style="display:block;font-family:'Inter',sans-serif;font-size:10px;font-weight:600;color:var(--on-surface-subtle,#9a9db8);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:4px;">LinkedIn</span>
+                      @if (lead.linkedin_url) {
+                        <a [href]="lead.linkedin_url" target="_blank" style="font-family:'Inter',sans-serif;font-size:13px;color:#4c56af;font-weight:500;text-decoration:none;">Ver Perfil</a>
+                      } @else { <span style="font-family:'Inter',sans-serif;font-size:13px;color:var(--on-surface-variant,#5c5f7a);">—</span> }
+                    </div>
+                  </div>
+
+                  <div style="background:var(--surface,#f4f6fb);padding:16px;border-radius:8px;">
+                    <p style="margin:0 0 8px;font-family:'Inter',sans-serif;font-size:13px;color:var(--on-surface,#1a1c2e);">
+                      <strong>🚀 Ángulo:</strong> {{ lead.angulo_transformacion }}
+                    </p>
+                    <p style="margin:0;font-family:'Inter',sans-serif;font-size:13px;color:var(--on-surface,#1a1c2e);">
+                      <strong>🧊 Icebreaker:</strong> <span style="font-style:italic;color:var(--on-surface-variant,#5c5f7a);">"{{ lead.icebreaker }}"</span>
+                    </p>
+                  </div>
+                </div>
+              }
+              
+              @if (scrapedLeads().length === 0) {
+                <div style="text-align:center;padding:48px 0;color:var(--on-surface-subtle,#9a9db8);">
+                  Esperando resultados de inteligencia artificial...
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      }
+
+    } @else if (activeTab() === 'history') {
+      <!-- ── Historial Tab ──────────────────────────────────── -->
+      <div style="background:var(--surface-lowest,#fff);border-radius:16px;box-shadow:var(--shadow-ambient,0 12px 32px rgba(25,28,30,0.06));overflow:hidden;">
+        <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 100px;gap:8px;padding:14px 24px;background:var(--surface,#f4f6fb);">
+          @for (h of ['BÚSQUEDA','UBICACIÓN','PROGRESO','LEADS','ESTADO','ACCIÓN']; track h) {
+            <span style="font-family:'Inter',sans-serif;font-size:10.5px;font-weight:600;color:var(--on-surface-subtle,#9a9db8);text-transform:uppercase;letter-spacing:0.07em;">{{ h }}</span>
+          }
+        </div>
+        
+        @for (job of jobsHistory(); track job.id; let odd = $odd) {
+          <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr 100px;gap:8px;align-items:center;padding:16px 24px;"
+               [style.background]="odd ? 'var(--surface,#f4f6fb)' : 'transparent'">
+            <div>
+              <p style="margin:0 0 2px;font-family:'Inter',sans-serif;font-size:13.5px;font-weight:600;color:var(--on-surface,#1a1c2e);">{{ job.search_query }}</p>
+              <p style="margin:0;font-family:'Inter',sans-serif;font-size:11.5px;color:var(--on-surface-subtle,#9a9db8);">{{ job.created_at | date:'short' }}</p>
+            </div>
+            <span style="font-family:'Inter',sans-serif;font-size:13px;color:var(--on-surface-variant,#5c5f7a);">{{ job.location }}</span>
+            <span style="font-family:'Inter',sans-serif;font-size:13px;color:var(--on-surface-variant,#5c5f7a);">{{ job.processed_companies }} / {{ job.max_results }}</span>
+            <span style="font-family:'Inter',sans-serif;font-size:13px;font-weight:600;color:var(--on-surface,#1a1c2e);">{{ job.lead_count || 0 }}</span>
+            <span>
+              <span style="font-family:'Inter',sans-serif;font-size:11px;font-weight:600;padding:4px 10px;border-radius:999px;background:var(--surface,#f4f6fb);">{{ job.status | uppercase }}</span>
+            </span>
+            <button (click)="currentJobId.set(job.id); loadJobLeads(job.id); setTab('dashboard');"
+              style="padding:6px 12px;background:none;border:1px solid rgba(92,95,122,0.2);border-radius:8px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;color:var(--on-surface,#1a1c2e);cursor:pointer;">
+              Ver
+            </button>
+          </div>
+        }
+      </div>
+    } @else if (activeTab() === 'leads') {
+      <!-- ── Todos los Leads Tab ──────────────────────────────────── -->
+      <div style="background:var(--surface-lowest,#fff);border-radius:16px;box-shadow:var(--shadow-ambient,0 12px 32px rgba(25,28,30,0.06));overflow:hidden;">
+        <div style="display:grid;grid-template-columns:3fr 1fr 1.5fr 1.5fr 150px;gap:8px;padding:14px 24px;background:var(--surface,#f4f6fb);">
+          @for (h of ['EMPRESA','SCORE','CONTACTO','ESTADO','ACCIÓN']; track h) {
+            <span style="font-family:'Inter',sans-serif;font-size:10.5px;font-weight:600;color:var(--on-surface-subtle,#9a9db8);text-transform:uppercase;letter-spacing:0.07em;">{{ h }}</span>
+          }
+        </div>
+        
+        @for (lead of allLeads(); track lead.id; let odd = $odd) {
+          <div style="display:grid;grid-template-columns:3fr 1fr 1.5fr 1.5fr 150px;gap:8px;align-items:center;padding:16px 24px;"
+               [style.background]="odd ? 'var(--surface,#f4f6fb)' : 'transparent'">
+            
+            <!-- Empresa -->
+            <div>
+              <p style="margin:0 0 2px;font-family:'Inter',sans-serif;font-size:13.5px;font-weight:600;color:var(--on-surface,#1a1c2e);">{{ lead.nombre_empresa }}</p>
+              <p style="margin:0;font-family:'Inter',sans-serif;font-size:11.5px;color:var(--on-surface-subtle,#9a9db8);">{{ lead.categoria_google }} • {{ lead.ciudad }}</p>
+            </div>
+            
+            <!-- Score -->
+            <span style="font-family:'Inter',sans-serif;font-size:13px;font-weight:700;"
+                  [style.color]="lead.score_lead >= 80 ? '#007a72' : (lead.score_lead >= 50 ? '#b27b00' : '#c62828')">
+              {{ lead.score_lead || 0 }}
+            </span>
+            
+            <!-- Contacto -->
+            <div style="display:flex;flex-direction:column;gap:2px;">
+              <span style="font-family:'Inter',sans-serif;font-size:11.5px;color:var(--on-surface-variant,#5c5f7a);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                {{ lead.email || 'Sin email' }}
+              </span>
+              @if (lead.telefono) {
+                <span style="font-family:'Inter',sans-serif;font-size:11.5px;color:var(--on-surface-variant,#5c5f7a);">{{ lead.telefono }}</span>
+              }
+            </div>
+            
+            <!-- Estado + Selector -->
+            <div style="display:flex;align-items:center;gap:8px;">
+              <!-- Colored Badge -->
+              <span [style.background]="getEstadoBadgeStyle(lead.estado).background"
+                    [style.color]="getEstadoBadgeStyle(lead.estado).color"
+                    style="font-family:'Inter',sans-serif;font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;text-transform:capitalize;">
+                {{ lead.estado }}
+              </span>
+              <!-- Select to update state directly from table -->
+              <select [(ngModel)]="lead.estado" (change)="updateLeadEstado(lead.id, lead.estado)"
+                style="padding:4px 8px;background:var(--surface,#f4f6fb);border:1px solid rgba(92,95,122,0.2);border-radius:6px;font-family:'Inter',sans-serif;font-size:11px;font-weight:600;color:var(--on-surface,#1a1c2e);outline:none;cursor:pointer;">
+                <option value="nuevo">Nuevo</option>
+                <option value="potencial">Potencial</option>
+                <option value="contactado">Contactado</option>
+                <option value="descartado">Descartado</option>
+                <option value="convertido" disabled>Convertido</option>
+              </select>
+            </div>
+            
+            <!-- Acción -->
+            <div>
+              @if (lead.estado !== 'convertido') {
+                <button (click)="importLead(lead.id)"
+                  style="padding:6px 12px;background:var(--on-surface,#1a1c2e);border:none;border-radius:8px;font-family:'Inter',sans-serif;font-size:11px;font-weight:600;color:#fff;cursor:pointer;">
+                  Importar a CRM
+                </button>
+              } @else {
+                <span style="font-family:'Inter',sans-serif;font-size:11px;font-weight:600;color:#006e2a;background:#e8f5e9;padding:4px 8px;border-radius:6px;">Importado</span>
+              }
+            </div>
+            
+          </div>
+        }
+        
+        @if (allLeads().length === 0) {
+          <div style="text-align:center;padding:48px 0;color:var(--on-surface-subtle,#9a9db8);font-family:'Inter',sans-serif;font-size:13px;">
+            No hay leads en el historial. ¡Empieza extrayendo desde el Dashboard!
+          </div>
+        }
+      </div>
+    }
+  </main>
+</div>
