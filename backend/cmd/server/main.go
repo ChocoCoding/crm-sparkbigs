@@ -15,6 +15,7 @@ import (
 	"github.com/sparkbigs/crm/internal/core/domain"
 	"github.com/sparkbigs/crm/internal/core/services"
 	"gorm.io/driver/mysql"
+
 	// "gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -26,17 +27,17 @@ func main() {
 	}
 
 	// ── 2. Conexión a la base de datos ───────────────────────────
-	// ▶️ PRODUCCIÓN (MySQL)
+	// ▶️ PRODUCCIÓN (Railway / MySQL)
 	dsn := mustEnv("MYSQL_DSN")
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
-	
+
 	// ▶️ DESARROLLO LOCAL (SQLite)
 	// Descomentar lo de abajo (y comentar lo de arriba de MySQL) para usar entorno local sin base de datos externa.
 	// Nota: Si descomentas esto, asegúrate de importar "gorm.io/driver/sqlite" y ejecutar `go mod tidy` para descargar el driver.
 	// db, err := gorm.Open(sqlite.Open("crm_local.db"), &gorm.Config{
 	// 	DisableForeignKeyConstraintWhenMigrating: true,
 	// })
-	
+
 	if err != nil {
 		log.Fatalf("Error conectando a MySQL: %v", err)
 	}
@@ -63,53 +64,53 @@ func main() {
 	}
 
 	// ── 3. Repositorios (adaptadores de salida) ──────────────────
-	userRepo         := storage.NewMysqlUserRepository(db)
-	licenseRepo      := storage.NewMysqlLicenseRepository(db)
+	userRepo := storage.NewMysqlUserRepository(db)
+	licenseRepo := storage.NewMysqlLicenseRepository(db)
 	refreshTokenRepo := storage.NewMysqlRefreshTokenRepository(db)
-	companyRepo      := storage.NewMysqlCompanyRepository(db)
-	contactRepo      := storage.NewMysqlContactRepository(db)
-	dealRepo         := storage.NewMysqlDealRepository(db)
-	meetingRepo      := storage.NewMysqlMeetingRepository(db)
+	companyRepo := storage.NewMysqlCompanyRepository(db)
+	contactRepo := storage.NewMysqlContactRepository(db)
+	dealRepo := storage.NewMysqlDealRepository(db)
+	meetingRepo := storage.NewMysqlMeetingRepository(db)
 	subscriptionRepo := storage.NewMysqlSubscriptionRepository(db)
-	settingRepo      := storage.NewMysqlSettingRepository(db)
-	dashboardRepo    := storage.NewMysqlDashboardRepository(db)
-	apiKeyRepo       := storage.NewMysqlAPIKeyRepository(db)
+	settingRepo := storage.NewMysqlSettingRepository(db)
+	dashboardRepo := storage.NewMysqlDashboardRepository(db)
+	apiKeyRepo := storage.NewMysqlAPIKeyRepository(db)
 	// Lead Scraper
-	scrapeJobRepo    := storage.NewMysqlScrapeJobRepository(db)
-	scrapedLeadRepo  := storage.NewMysqlScrapedLeadRepository(db)
-	scrapeLogRepo    := storage.NewMysqlScrapeAPILogRepository(db)
+	scrapeJobRepo := storage.NewMysqlScrapeJobRepository(db)
+	scrapedLeadRepo := storage.NewMysqlScrapedLeadRepository(db)
+	scrapeLogRepo := storage.NewMysqlScrapeAPILogRepository(db)
 
 	// ── 4. Servicios core (lógica de negocio) ────────────────────
 	jwtSecret := mustEnv("JWT_SECRET")
 
-	authSvc         := services.NewAuthService(userRepo, refreshTokenRepo, licenseRepo, jwtSecret)
-	adminSvc        := services.NewAdminService(userRepo, licenseRepo)
-	companySvc      := services.NewCompanyService(companyRepo)
-	contactSvc      := services.NewContactService(contactRepo)
-	dealSvc         := services.NewDealService(dealRepo)
-	meetingSvc      := services.NewMeetingService(meetingRepo)
+	authSvc := services.NewAuthService(userRepo, refreshTokenRepo, licenseRepo, jwtSecret)
+	adminSvc := services.NewAdminService(userRepo, licenseRepo)
+	companySvc := services.NewCompanyService(companyRepo)
+	contactSvc := services.NewContactService(contactRepo)
+	dealSvc := services.NewDealService(dealRepo)
+	meetingSvc := services.NewMeetingService(meetingRepo)
 	subscriptionSvc := services.NewSubscriptionService(subscriptionRepo)
-	settingSvc      := services.NewSettingService(settingRepo)
-	dashboardSvc    := services.NewDashboardService(dashboardRepo)
-	apiKeySvc       := services.NewAPIKeyService(apiKeyRepo)
-	leadScraperSvc  := services.NewLeadScraperService(scrapeJobRepo, scrapedLeadRepo, scrapeLogRepo, companyRepo, contactRepo)
+	settingSvc := services.NewSettingService(settingRepo)
+	dashboardSvc := services.NewDashboardService(dashboardRepo)
+	apiKeySvc := services.NewAPIKeyService(apiKeyRepo)
+	leadScraperSvc := services.NewLeadScraperService(scrapeJobRepo, scrapedLeadRepo, scrapeLogRepo, companyRepo, contactRepo)
 
 	// ── Seed ─────────────────────────────────────────────────────
 	seedDatabase(db, authSvc)
 
 	// ── 5. Handlers (adaptadores de entrada) ─────────────────────
-	authHandler         := handler.NewAuthHandler(authSvc)
-	adminHandler        := handler.NewAdminHandler(adminSvc)
-	companyHandler      := handler.NewCompanyHandler(companySvc)
-	contactHandler      := handler.NewContactHandler(contactSvc)
-	dealHandler         := handler.NewDealHandler(dealSvc)
-	meetingHandler      := handler.NewMeetingHandler(meetingSvc)
+	authHandler := handler.NewAuthHandler(authSvc)
+	adminHandler := handler.NewAdminHandler(adminSvc)
+	companyHandler := handler.NewCompanyHandler(companySvc)
+	contactHandler := handler.NewContactHandler(contactSvc)
+	dealHandler := handler.NewDealHandler(dealSvc)
+	meetingHandler := handler.NewMeetingHandler(meetingSvc)
 	subscriptionHandler := handler.NewSubscriptionHandler(subscriptionSvc)
-	settingHandler      := handler.NewSettingHandler(settingSvc)
-	dashboardHandler    := handler.NewDashboardHandler(dashboardSvc)
-	apiKeyHandler       := handler.NewAPIKeyHandler(apiKeySvc)
-	webhookHandler      := handler.NewWebhookHandler(companySvc, contactSvc, meetingSvc, subscriptionSvc)
-	leadScraperHandler  := handler.NewLeadScraperHandler(leadScraperSvc)
+	settingHandler := handler.NewSettingHandler(settingSvc)
+	dashboardHandler := handler.NewDashboardHandler(dashboardSvc)
+	apiKeyHandler := handler.NewAPIKeyHandler(apiKeySvc)
+	webhookHandler := handler.NewWebhookHandler(companySvc, contactSvc, meetingSvc, subscriptionSvc)
+	leadScraperHandler := handler.NewLeadScraperHandler(leadScraperSvc)
 
 	// ── 6. Fiber + Middleware global ─────────────────────────────
 	app := fiber.New(fiber.Config{

@@ -537,6 +537,8 @@ Formato de respuesta: DEVUELVE EXCLUSIVAMENTE UN JSON VÁLIDO. Sin bloques de ma
   "gran_potencial_estrategico": true o false,
   "score_lead": 0 a 100 (100 = lead perfecto ICP),
   "razones_score": "2 oraciones justificando estratégicamente el score usando evidencia explícita de la web",
+  "dificultad": "Alta, Media o Baja. ¿Cuán difícil sería venderles nuestros servicios? (Ej: Si su marca y web son de nivel de clase mundial, la dificultad es Alta. Si su marca es mala o no existe, es Baja)",
+  "viabilidad_razon": "Justificación de 1 o 2 líneas explicando por qué crees que son viables o difíciles para nuestros servicios.",
   "icebreaker_hiper_personalizado": "Línea de apertura hiper-personalizada para cold email.",
   "email_detectado": "Email de contacto principal si aparece en el sitio web (o null)",
   "contactos_clasificados": [
@@ -606,6 +608,8 @@ Formato de respuesta: DEVUELVE EXCLUSIVAMENTE UN JSON VÁLIDO. Sin bloques de ma
   "gran_potencial_estrategico": true o false,
   "score_lead": 0 a 100,
   "razones_score": "2 oraciones justificando estratégicamente el score",
+  "dificultad": "Alta, Media o Baja. Cuán difícil sería mejorarles comercialmente y venderles.",
+  "viabilidad_razon": "Explicación breve de su viabilidad comercial actual.",
   "icebreaker_hiper_personalizado": "Línea de apertura para email B2B.",
   "contactos_clasificados": [
     { "email": "ejemplo@empresa.com", "departamento": "Recursos Humanos / Ventas / General / Dirección / Otro" }
@@ -714,6 +718,8 @@ type geminiAnalysis struct {
 	ScoreLead                  json.Number              `json:"score_lead"`
 	RazonesScore               string                   `json:"razones_score"`
 	RazonScore                 string                   `json:"razon_score"`
+	Dificultad                 string                   `json:"dificultad"`
+	ViabilidadRazon            string                   `json:"viabilidad_razon"`
 	IcebreakerPersonalizado    string                   `json:"icebreaker_hiper_personalizado"`
 	Icebreaker                 string                   `json:"icebreaker"`
 	EmailDetectado             *string                  `json:"email_detectado"`
@@ -755,9 +761,11 @@ type parsedLead struct {
 	GranPotencialEstrategico bool
 	ScoreLead                int
 	RazonesScore             string
+	Dificultad               string
+	ViabilidadRazon          string
 	Icebreaker               string
-	ContactosClasificados    []map[string]string
 	AnalisisCompleto         string
+	ContactosClasificados    []map[string]string
 	Fuente                   string
 	Estado                   string
 }
@@ -868,6 +876,8 @@ func parseGeminiResponse(rawText string, emp normalizedCompany, origenPrompt str
 		GranPotencialEstrategico: ai.GranPotencialEstrategico,
 		ScoreLead:                score,
 		RazonesScore:             razonesScore,
+		Dificultad:               ai.Dificultad,
+		ViabilidadRazon:          ai.ViabilidadRazon,
 		Icebreaker:               icebreaker,
 		ContactosClasificados:    contactos,
 		AnalisisCompleto:         analisis,

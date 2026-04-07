@@ -270,34 +270,7 @@ func (s *leadScraperService) runPipeline(jobID, query, location string, maxResul
 			}
 
 			// Step 2.7: Pre-Calificación IA rápida para ahorrar créditos
-			preScore := preQualifyWithGemini(ctx, emp, emit)
-			if preScore < 25 {
-				dbLead := &domain.ScrapedLead{
-					JobID:           jobID,
-					NombreEmpresa:   emp.NombreEmpresa,
-					GooglePlaceID:   emp.GooglePlaceID,
-					CategoriaGoogle: emp.CategoriaGoogle,
-					Website:         emp.Website,
-					Ciudad:          emp.Ciudad,
-					Pais:            emp.Pais,
-					TieneWeb:        emp.TieneWeb,
-					ScoreLead:       preScore,
-					RazonesScore:    "Descartado automáticamente por Filtro Básico IA (<25).",
-					Estado:          "descartado",
-				}
-				_ = s.leadRepo.Create(dbLead)
-				_ = s.jobRepo.IncrementProcessed(jobID)
-
-				emit("lead_skipped", map[string]interface{}{
-					"name": dbLead.NombreEmpresa, "score": dbLead.ScoreLead,
-					"reason": "Descartado inicial (Score < 25)",
-				})
-				emit("company_done", map[string]interface{}{
-					"index": i, "total": len(companies), "name": companyName,
-					"score": dbLead.ScoreLead, "estado": dbLead.Estado,
-				})
-				return
-			}
+			_ = preQualifyWithGemini(ctx, emp, emit)
 
 			// Step 3: LinkedIn
 			linkedin := searchLinkedIn(ctx, emp.NombreEmpresa, emit)
@@ -379,6 +352,8 @@ func (s *leadScraperService) runPipeline(jobID, query, location string, maxResul
 				GranPotencialEstrategico:   lead.GranPotencialEstrategico,
 				ScoreLead:                  lead.ScoreLead,
 				RazonesScore:               lead.RazonesScore,
+				Dificultad:                 lead.Dificultad,
+				ViabilidadRazon:            lead.ViabilidadRazon,
 				Icebreaker:                 lead.Icebreaker,
 				ContactosClasificados:      contactosJSON,
 				EmailsAdicionales:          emailsJSON,
@@ -387,7 +362,6 @@ func (s *leadScraperService) runPipeline(jobID, query, location string, maxResul
 				Estado:                     lead.Estado,
 			}
 
-			// Score filter (como n8n: skip si ≤ 30)
 			leadDetail := map[string]interface{}{
 				"name":              lead.NombreEmpresa,
 				"score":             lead.ScoreLead,
@@ -405,13 +379,7 @@ func (s *leadScraperService) runPipeline(jobID, query, location string, maxResul
 				"email":             lead.Email,
 			}
 
-			if lead.ScoreLead <= 30 {
-				leadDetail["reason"] = "Score ≤ 30"
-				emit("lead_skipped", leadDetail)
-				dbLead.Estado = "descartado"
-			} else {
-				emit("lead_saved", leadDetail)
-			}
+			emit("lead_saved", leadDetail)
 
 			// Guardar en MySQL
 			_ = s.leadRepo.Create(dbLead)

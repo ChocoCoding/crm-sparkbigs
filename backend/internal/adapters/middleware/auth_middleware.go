@@ -28,15 +28,27 @@ func NewJWTMiddleware(authService ports.AuthService) fiber.Handler {
 		}
 
 		authHeader := c.Get("Authorization")
-		parts := strings.SplitN(authHeader, " ", 2)
-		if len(parts) != 2 || strings.ToLower(parts[0]) != "bearer" {
+		tokenStr := ""
+
+		if authHeader != "" {
+			parts := strings.SplitN(authHeader, " ", 2)
+			if len(parts) == 2 && strings.ToLower(parts[0]) == "bearer" {
+				tokenStr = parts[1]
+			}
+		}
+		
+		if tokenStr == "" {
+			tokenStr = c.Query("token") // Soporte para Server-Sent Events (EventSource)
+		}
+
+		if tokenStr == "" {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"success": false,
 				"error":   fiber.Map{"code": "UNAUTHORIZED", "message": "Token requerido"},
 			})
 		}
 
-		claims, err := authService.ValidateToken(parts[1])
+		claims, err := authService.ValidateToken(tokenStr)
 		if err != nil {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
 				"success": false,

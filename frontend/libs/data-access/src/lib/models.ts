@@ -187,6 +187,8 @@ export interface ScrapedLead {
   gran_potencial_estrategico: boolean;
   score_lead: number;
   razones_score: string;
+  dificultad: string;
+  viabilidad_razon: string;
   icebreaker: string;
   analisis_completo: string;
 
@@ -194,7 +196,7 @@ export interface ScrapedLead {
   emails_adicionales: string[];
 
   fuente: string;
-  estado: 'nuevo' | 'contactado' | 'descartado' | 'convertido';
+  estado: 'nuevo' | 'potencial' | 'contactado' | 'descartado' | 'archivado' | 'convertido';
 }
 
 export interface ScrapeAPILog {

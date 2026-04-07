@@ -33,16 +33,13 @@ export class LeadScraperService {
   }
 
   streamJobEvents(jobId: string): EventSource {
-    const url = `${this.apiUrl}/stream/${jobId}`;
-    // Se asume que JWT no va en EventSource fácilmente (es un GET nativo del browser).
-    // Si el backend lo protege y requiere header, habría que usar Polyfill como EventSourcePolyfill
-    // o pasar un token por query param. Por ahora el backend tiene /stream/:jobId con JWT
-    // En el futuro, si the auth middleware requires it, you might need to append ?token=... 
-    // Para resolverlo de forma standard, si authInterceptor no atrapa EventSource,
-    // puedes pasar el token:
+    let url = `${this.apiUrl}/stream/${jobId}`;
     const token = localStorage.getItem('access_token');
-    // Para simplificar, usamos EventSource nativo. Asegúrate de configurar el endpoint para
-    // soportar Auth en query params si Fiber lo bloquea (o ignorar JWT para SSE).
+    
+    if (token) {
+      url += `?token=${encodeURIComponent(token)}`;
+    }
+    
     return new EventSource(url);
   }
 

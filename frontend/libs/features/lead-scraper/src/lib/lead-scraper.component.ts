@@ -44,6 +44,7 @@ export class LeadScraperComponent implements OnInit, OnDestroy {
   // History & Globals
   jobsHistory = signal<ScrapeJob[]>([]);
   allLeads = signal<ScrapedLead[]>([]);
+  expandedLeadId = signal<number | null>(null);
   
   ngOnInit(): void {
     this.loadJobsHistory();
@@ -63,6 +64,14 @@ export class LeadScraperComponent implements OnInit, OnDestroy {
       this.loadJobsHistory();
     } else if (tab === 'leads') {
       this.loadAllLeads();
+    }
+  }
+
+  toggleLead(id: number) {
+    if (this.expandedLeadId() === id) {
+      this.expandedLeadId.set(null);
+    } else {
+      this.expandedLeadId.set(id);
     }
   }
 
@@ -189,13 +198,43 @@ export class LeadScraperComponent implements OnInit, OnDestroy {
       next: (res) => {
         if (res.success) {
           alert('Lead importado con éxito!');
-          if (this.currentJobId()) {
-            this.loadJobLeads(this.currentJobId()!);
-          }
+          this.loadAllLeads(); // Recargar para mostrar estado Convertido
         }
       },
       error: (err) => {
-        alert('Error importando: ' + (err.error?.message || err.message));
+        alert('Error al importar: ' + (err.error?.error?.message || 'Error desconocido'));
+      }
+    });
+  }
+
+  deleteLead(leadId: number) {
+    if (!confirm('¿Estás seguro de que deseas eliminar este lead definitivamente?')) return;
+
+    this.scraperService.deleteLead(leadId).subscribe({
+      next: (res) => {
+        if (res.success) {
+          // Remove locally
+          this.scrapedLeads.update(leads => leads.filter(l => l.id !== leadId));
+          this.allLeads.update(leads => leads.filter(l => l.id !== leadId));
+        }
+      },
+      error: (err) => {
+        alert('Error al eliminar: ' + (err.error?.error?.message || 'Error desconocido'));
+      }
+    });
+  }
+
+  archiveLead(leadId: number) {
+    this.scraperService.updateLeadEstado(leadId, 'archivado').subscribe({
+      next: (res) => {
+        if (res.success) {
+          // Actualizar localmente el estado
+          this.scrapedLeads.update(leads => leads.map(l => l.id === leadId ? { ...l, estado: 'archivado' } : l));
+          this.allLeads.update(leads => leads.map(l => l.id === leadId ? { ...l, estado: 'archivado' } : l));
+        }
+      },
+      error: (err) => {
+        alert('Error al archivar: ' + (err.error?.error?.message || 'Error desconocido'));
       }
     });
   }
@@ -227,5 +266,17 @@ export class LeadScraperComponent implements OnInit, OnDestroy {
       default:
         return { background: '#f4f6fb', color: '#5c5f7a' };
     }
+  }
+
+  getDificultadBadgeStyle(dificultad: string | undefined): any {
+    const val = (dificultad || '').toLowerCase().trim();
+    if (val.includes('alta')) {
+      return { background: '#ffebee', color: '#c62828' }; // rojo -> dif. alta (muy buenos)
+    } else if (val.includes('baja')) {
+      return { background: '#e8f5e9', color: '#2e7d32' }; // verde -> dif. baja (fácil prospección)
+    } else if (val.includes('media')) {
+      return { background: '#fff8e1', color: '#f57f17' }; // amarillo -> dif. media
+    }
+    return { background: '#f4f6fb', color: '#5c5f7a' }; // default
   }
 }

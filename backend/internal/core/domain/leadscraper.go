@@ -81,6 +81,8 @@ type ScrapedLead struct {
 	RazonesScore               string `gorm:"type:text" json:"razones_score"`
 	Icebreaker                 string `gorm:"type:text" json:"icebreaker"`
 	AnalisisCompleto           string `gorm:"type:text" json:"analisis_completo"`
+	ViabilidadRazon            string `gorm:"type:text" json:"viabilidad_razon"`
+	Dificultad                 string `gorm:"size:50" json:"dificultad"` // "Alta" | "Media" | "Baja"
 
 	// ─── Contactos clasificados (JSON array) ─────────────────────
 	ContactosClasificados datatypes.JSON `json:"contactos_clasificados"`

@@ -140,6 +140,14 @@
                               style="font-family:'Inter',sans-serif;font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;">
                           SCORE: {{ lead.score_lead }}
                         </span>
+                        <!-- Dificultad Badge -->
+                        @if (lead.dificultad) {
+                          <span [style.background]="getDificultadBadgeStyle(lead.dificultad).background"
+                                [style.color]="getDificultadBadgeStyle(lead.dificultad).color"
+                                style="font-family:'Inter',sans-serif;font-size:10px;font-weight:700;padding:4px 8px;border-radius:999px;border:1px solid currentColor;">
+                            DIFICULTAD: {{ lead.dificultad | uppercase }}
+                          </span>
+                        }
                       </div>
                       <p style="margin:0;font-family:'Inter',sans-serif;font-size:13px;color:var(--on-surface-variant,#5c5f7a);">{{ lead.categoria_google }} • {{ lead.ciudad }}, {{ lead.pais }}</p>
                     </div>
@@ -189,6 +197,9 @@
                   <div style="background:var(--surface,#f4f6fb);padding:16px;border-radius:8px;">
                     <p style="margin:0 0 8px;font-family:'Inter',sans-serif;font-size:13px;color:var(--on-surface,#1a1c2e);">
                       <strong>🚀 Ángulo:</strong> {{ lead.angulo_transformacion }}
+                    </p>
+                    <p style="margin:0 0 8px;font-family:'Inter',sans-serif;font-size:13px;color:var(--on-surface,#1a1c2e);">
+                      <strong>🚦 Viabilidad:</strong> <span style="color:var(--on-surface-variant,#5c5f7a);">{{ lead.viabilidad_razon }}</span>
                     </p>
                     <p style="margin:0;font-family:'Inter',sans-serif;font-size:13px;color:var(--on-surface,#1a1c2e);">
                       <strong>🧊 Icebreaker:</strong> <span style="font-style:italic;color:var(--on-surface-variant,#5c5f7a);">"{{ lead.icebreaker }}"</span>
@@ -246,8 +257,11 @@
         </div>
         
         @for (lead of allLeads(); track lead.id; let odd = $odd) {
-          <div style="display:grid;grid-template-columns:3fr 1fr 1.5fr 1.5fr 150px;gap:8px;align-items:center;padding:16px 24px;"
-               [style.background]="odd ? 'var(--surface,#f4f6fb)' : 'transparent'">
+          <div (click)="toggleLead(lead.id)"
+               style="display:grid;grid-template-columns:3fr 1fr 1.5fr 1.5fr 150px;gap:8px;align-items:center;padding:16px 24px;cursor:pointer;transition:background 0.2s;"
+               [style.background]="expandedLeadId() === lead.id ? 'var(--surface-high,#edf0f7)' : (odd ? 'var(--surface,#f4f6fb)' : 'transparent')"
+               onmouseover="this.style.background='var(--surface-high,#edf0f7)'"
+               onmouseout="if(this.dataset.expanded !== 'true') this.style.background=''">
             
             <!-- Empresa -->
             <div>
@@ -255,11 +269,20 @@
               <p style="margin:0;font-family:'Inter',sans-serif;font-size:11.5px;color:var(--on-surface-subtle,#9a9db8);">{{ lead.categoria_google }} • {{ lead.ciudad }}</p>
             </div>
             
-            <!-- Score -->
-            <span style="font-family:'Inter',sans-serif;font-size:13px;font-weight:700;"
-                  [style.color]="lead.score_lead >= 80 ? '#007a72' : (lead.score_lead >= 50 ? '#b27b00' : '#c62828')">
-              {{ lead.score_lead || 0 }}
-            </span>
+            <!-- Score y Dificultad -->
+            <div style="display:flex;flex-direction:column;gap:4px;align-items:flex-start;">
+              <span style="font-family:'Inter',sans-serif;font-size:13px;font-weight:700;"
+                    [style.color]="lead.score_lead >= 80 ? '#007a72' : (lead.score_lead >= 50 ? '#b27b00' : '#c62828')">
+                {{ lead.score_lead || 0 }}
+              </span>
+              @if (lead.dificultad) {
+                <span [style.background]="getDificultadBadgeStyle(lead.dificultad).background"
+                      [style.color]="getDificultadBadgeStyle(lead.dificultad).color"
+                      style="font-family:'Inter',sans-serif;font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;white-space:nowrap;">
+                  Dif. {{ lead.dificultad }}
+                </span>
+              }
+            </div>
             
             <!-- Contacto -->
             <div style="display:flex;flex-direction:column;gap:2px;">
@@ -272,37 +295,100 @@
             </div>
             
             <!-- Estado + Selector -->
-            <div style="display:flex;align-items:center;gap:8px;">
-              <!-- Colored Badge -->
+            <div style="display:flex;align-items:center;gap:8px;" (click)="$event.stopPropagation()">
               <span [style.background]="getEstadoBadgeStyle(lead.estado).background"
                     [style.color]="getEstadoBadgeStyle(lead.estado).color"
                     style="font-family:'Inter',sans-serif;font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;text-transform:capitalize;">
                 {{ lead.estado }}
               </span>
-              <!-- Select to update state directly from table -->
               <select [(ngModel)]="lead.estado" (change)="updateLeadEstado(lead.id, lead.estado)"
                 style="padding:4px 8px;background:var(--surface,#f4f6fb);border:1px solid rgba(92,95,122,0.2);border-radius:6px;font-family:'Inter',sans-serif;font-size:11px;font-weight:600;color:var(--on-surface,#1a1c2e);outline:none;cursor:pointer;">
                 <option value="nuevo">Nuevo</option>
                 <option value="potencial">Potencial</option>
                 <option value="contactado">Contactado</option>
                 <option value="descartado">Descartado</option>
+                <option value="archivado">Archivado</option>
                 <option value="convertido" disabled>Convertido</option>
               </select>
             </div>
             
             <!-- Acción -->
-            <div>
+            <div (click)="$event.stopPropagation()" style="display:flex;gap:4px;align-items:center;">
               @if (lead.estado !== 'convertido') {
-                <button (click)="importLead(lead.id)"
-                  style="padding:6px 12px;background:var(--on-surface,#1a1c2e);border:none;border-radius:8px;font-family:'Inter',sans-serif;font-size:11px;font-weight:600;color:#fff;cursor:pointer;">
-                  Importar a CRM
+                <button (click)="importLead(lead.id)" title="Importar a CRM"
+                  style="padding:6px 8px;background:var(--on-surface,#1a1c2e);border:none;border-radius:8px;font-family:'Inter',sans-serif;font-size:11px;font-weight:600;color:#fff;cursor:pointer;">
+                  CRM
                 </button>
               } @else {
-                <span style="font-family:'Inter',sans-serif;font-size:11px;font-weight:600;color:#006e2a;background:#e8f5e9;padding:4px 8px;border-radius:6px;">Importado</span>
+                <span style="padding:4px 6px;background:#e8f5e9;color:#006e2a;border-radius:8px;font-family:'Inter',sans-serif;font-size:10px;font-weight:600;">En CRM</span>
               }
+              <button (click)="archiveLead(lead.id)" title="Archivar lead"
+                style="padding:6px 8px;background:var(--surface,#f4f6fb);border:1px solid rgba(92,95,122,0.2);border-radius:8px;cursor:pointer;font-size:12px;">
+                📁
+              </button>
+              <button (click)="deleteLead(lead.id)" title="Eliminar definitivamente"
+                style="padding:6px 8px;background:#ffebee;border:1px solid rgba(211,47,47,0.2);border-radius:8px;color:#d32f2f;cursor:pointer;font-size:12px;">
+                🗑️
+              </button>
             </div>
-            
           </div>
+
+          <!-- DETALLE EXPANDIBLE -->
+          @if (expandedLeadId() === lead.id) {
+            <div style="background:var(--surface-lowest,#fff);padding:24px;border-top:1px solid rgba(92,95,122,0.1);border-bottom:1px solid rgba(92,95,122,0.1);display:grid;grid-template-columns:1fr 1fr;gap:32px;">
+              <!-- Columna Izquierda: Análisis de Negocio -->
+              <div>
+                <h5 style="margin:0 0 16px;font-family:'Manrope',sans-serif;font-size:14px;font-weight:700;color:var(--on-surface,#1a1c2e);text-transform:uppercase;letter-spacing:0.05em;">Análisis Estratégico</h5>
+                <div style="display:flex;flex-direction:column;gap:12px;">
+                  <p style="margin:0;font-family:'Inter',sans-serif;font-size:13px;line-height:1.6;color:var(--on-surface,#1a1c2e);">
+                    <strong>🎯 Nicho:</strong> {{ lead.nicho_especifico }}
+                  </p>
+                  <p style="margin:0;font-family:'Inter',sans-serif;font-size:13px;line-height:1.6;color:var(--on-surface,#1a1c2e);">
+                    <strong>🏢 Negocio:</strong> {{ lead.descripcion_negocio }}
+                  </p>
+                  <p style="margin:0;font-family:'Inter',sans-serif;font-size:13px;line-height:1.6;color:var(--on-surface,#1a1c2e);">
+                    <strong>💻 Madurez Digital:</strong> {{ lead.madurez_digital }}
+                  </p>
+                  <p style="margin:0;font-family:'Inter',sans-serif;font-size:13px;line-height:1.6;color:var(--on-surface,#1a1c2e);">
+                    <strong>🤝 Necesidades RRHH:</strong> {{ lead.necesidades_rrhh }}
+                  </p>
+                  <p style="margin:0;font-family:'Inter',sans-serif;font-size:13px;line-height:1.6;color:var(--on-surface,#1a1c2e);">
+                    <strong>📈 Ventas:</strong> {{ lead.necesidades_ventas }}
+                  </p>
+                </div>
+              </div>
+
+              <!-- Columna Derecha: Prospección -->
+              <div>
+                <h5 style="margin:0 0 16px;font-family:'Manrope',sans-serif;font-size:14px;font-weight:700;color:var(--on-surface,#1a1c2e);text-transform:uppercase;letter-spacing:0.05em;">Plan de Acción (Sincron-IA)</h5>
+                <div style="display:flex;flex-direction:column;gap:12px;">
+                  <div style="background:#f4f6fb;padding:16px;border-radius:12px;border-left:4px solid #00ced1;">
+                    <p style="margin:0 0 8px;font-family:'Inter',sans-serif;font-size:13px;font-weight:700;color:#007a72;">🚀 Ángulo de Transformación</p>
+                    <p style="margin:0;font-family:'Inter',sans-serif;font-size:13px;line-height:1.5;color:var(--on-surface,#1a1c2e);">{{ lead.angulo_transformacion }}</p>
+                  </div>
+                  
+                  <div style="background:#f4f6fb;padding:16px;border-radius:12px;border-left:4px solid #f57f17;">
+                    <p style="margin:0 0 8px;font-family:'Inter',sans-serif;font-size:13px;font-weight:700;color:#b27b00;">🚦 Viabilidad & Dificultad</p>
+                    <p style="margin:0;font-family:'Inter',sans-serif;font-size:13px;line-height:1.5;color:var(--on-surface,#1a1c2e);">{{ lead.viabilidad_razon }}</p>
+                  </div>
+
+                  <div style="background:var(--on-surface,#1a1c2e);padding:16px;border-radius:12px;color:#fff;">
+                    <p style="margin:0 0 8px;font-family:'Inter',sans-serif;font-size:13px;font-weight:700;color:#00ced1;">🧊 Icebreaker Hiper-Personalizado</p>
+                    <p style="margin:0;font-family:'Inter',sans-serif;font-size:13px;font-style:italic;line-height:1.5;opacity:0.9;">"{{ lead.icebreaker }}"</p>
+                  </div>
+
+                  <div style="margin-top:8px;">
+                    <p style="margin:0 0 4px;font-family:'Inter',sans-serif;font-size:12px;font-weight:600;color:var(--on-surface-subtle,#9a9db8);">MÁS INFO:</p>
+                    <div style="display:flex;gap:12px;">
+                      @if (lead.linkedin_url) { <a [href]="lead.linkedin_url" target="_blank" style="color:#4c56af;font-size:12px;font-weight:600;text-decoration:none;">LinkedIn</a> }
+                      @if (lead.website) { <a [href]="lead.website" target="_blank" style="color:#007a72;font-size:12px;font-weight:600;text-decoration:none;">Website</a> }
+                      <span style="color:var(--on-surface-subtle,#9a9db8);font-size:12px;">Google ID: {{ lead.google_place_id }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
         }
         
         @if (allLeads().length === 0) {
