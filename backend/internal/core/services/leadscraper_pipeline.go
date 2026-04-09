@@ -343,14 +343,18 @@ Devuelve EXCLUSIVAMENTE un JSON válido con la forma: {"score_lead": 80}`, emp.N
 		return 50 // Por defecto pasa si falla Google
 	}
 
+	if status != 200 {
+		emit("step_error", map[string]interface{}{"step": "prequalify", "error": fmt.Sprintf("Gemini API error %d", status)})
+		return 50
+	}
+
 	var resp geminiResponse
 	json.Unmarshal(data, &resp)
 
-	rawText := "{}"
-	if len(resp.Candidates) > 0 && len(resp.Candidates[0].Content.Parts) > 0 {
-		rawText = strings.ReplaceAll(resp.Candidates[0].Content.Parts[0].Text, "```json", "")
-		rawText = strings.ReplaceAll(rawText, "```", "")
-	}
+	rawText := extractGeminiText(resp)
+	rawText = strings.ReplaceAll(rawText, "```json", "")
+	rawText = strings.ReplaceAll(rawText, "```", "")
+	rawText = strings.TrimSpace(rawText)
 
 	var pq preQualifyResponse
 	json.Unmarshal([]byte(rawText), &pq)
@@ -640,14 +644,31 @@ type geminiGenConfig struct {
 	MaxOutputTokens int    `json:"maxOutputTokens"`
 }
 
+type geminiResponsePart struct {
+	Text    string `json:"text"`
+	Thought bool   `json:"thought"` // gemini-2.5-flash thinking tokens
+}
+
 type geminiResponse struct {
 	Candidates []struct {
 		Content struct {
-			Parts []struct {
-				Text string `json:"text"`
-			} `json:"parts"`
+			Parts []geminiResponsePart `json:"parts"`
 		} `json:"content"`
 	} `json:"candidates"`
+}
+
+// extractGeminiText returns the first non-thinking part text from a Gemini response.
+// gemini-2.5-flash includes thinking tokens as Parts[0] with thought=true;
+// the actual answer is in the next part.
+func extractGeminiText(resp geminiResponse) string {
+	for _, candidate := range resp.Candidates {
+		for _, part := range candidate.Content.Parts {
+			if !part.Thought && part.Text != "" {
+				return part.Text
+			}
+		}
+	}
+	return "{}"
 }
 
 func analyzeWithGemini(ctx context.Context, prompt string, emit pipelineEmitter) (string, error) {
@@ -685,13 +706,16 @@ func analyzeWithGemini(ctx context.Context, prompt string, emit pipelineEmitter)
 		return "", err
 	}
 
+	if status != 200 {
+		errMsg := fmt.Sprintf("Gemini API error %d: %s", status, string(data))
+		emit("step_error", map[string]interface{}{"step": "gemini", "error": errMsg})
+		return "", fmt.Errorf(errMsg)
+	}
+
 	var resp geminiResponse
 	json.Unmarshal(data, &resp)
 
-	rawText := "{}"
-	if len(resp.Candidates) > 0 && len(resp.Candidates[0].Content.Parts) > 0 {
-		rawText = resp.Candidates[0].Content.Parts[0].Text
-	}
+	rawText := extractGeminiText(resp)
 
 	emit("api_response", map[string]interface{}{
 		"step": "gemini", "status": status, "duration": duration,

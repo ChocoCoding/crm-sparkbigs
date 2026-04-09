@@ -7,7 +7,16 @@
       "Bash(go mod:*)",
       "Bash(go test:*)",
       "Bash(npx nx:*)",
-      "Bash(go run:*)"
+      "Bash(go run:*)",
+      "Bash(ls /Users/ivanmanso/Development/crm-sparkbigs/backend/.env*)",
+      "Bash(ls /Users/ivanmanso/Development/crm-sparkbigs/backend/*.env)",
+      "Bash(go vet:*)",
+      "Bash(sqlite3 crm_local.db \"SELECT COUNT\\(*\\) FROM scrape_jobs; SELECT COUNT\\(*\\) FROM scraped_leads;\")",
+      "Bash(sqlite3 crm_local.db \"SELECT id, search_query, location, status, total_companies, processed_companies, created_at FROM scrape_jobs ORDER BY created_at DESC LIMIT 5;\")",
+      "Bash(sqlite3 crm_local.db \"SELECT job_id, step_name, status, response_summary FROM scrape_api_logs ORDER BY created_at DESC LIMIT 20;\")",
+      "Bash(sqlite3 crm_local.db \"SELECT id, nombre_empresa, score_lead, dificultad, analisis_completo FROM scraped_leads WHERE id = 8;\")",
+      "Bash(sqlite3 crm_local.db \"SELECT id, job_id, nombre_empresa, score_lead, dificultad FROM scraped_leads ORDER BY id DESC LIMIT 5;\")",
+      "Bash(sqlite3 crm_local.db \"SELECT job_id, step_name, status, response_summary FROM scrape_api_logs WHERE job_id IN \\('466071c9-4b37-4a63-8ebd-6a3c5e239a79', '89513607-f8cf-4a9a-9033-7a59c71093d5'\\) ORDER BY id;\")"
     ]
   }
 }

@@ -270,9 +270,58 @@ func (s *leadScraperService) runPipeline(jobID, query, location string, maxResul
 			}
 
 			// Step 2.7: Pre-Calificación IA rápida para ahorrar créditos
-			_ = preQualifyWithGemini(ctx, emp, emit)
+			preScore := preQualifyWithGemini(ctx, emp, emit)
 
-			// Step 3: LinkedIn
+			// Filtro de coste: score < 50 → guardar en DB como descartado_auto y saltar pipeline completo.
+			// Así no volvemos a gastar tokens en esta empresa en futuras búsquedas.
+			if preScore < 50 {
+				emailsJSON, _ := json.Marshal(emp.EmailsAdicionales)
+				discardedLead := &domain.ScrapedLead{
+					JobID:                  jobID,
+					NombreEmpresa:          emp.NombreEmpresa,
+					GooglePlaceID:          emp.GooglePlaceID,
+					Email:                  emp.Email,
+					Telefono:               emp.Telefono,
+					Website:                emp.Website,
+					Direccion:              emp.Direccion,
+					Ciudad:                 emp.Ciudad,
+					Provincia:              emp.Provincia,
+					Pais:                   emp.Pais,
+					CodigoPostal:           emp.CodigoPostal,
+					Latitud:                emp.Latitud,
+					Longitud:               emp.Longitud,
+					CategoriaGoogle:        emp.CategoriaGoogle,
+					RatingGoogle:           emp.RatingGoogle,
+					NumReviews:             emp.NumReviews,
+					TieneWeb:               emp.TieneWeb,
+					PresenciaRedesSociales: emp.PresenciaRedesSociales,
+					LinkedinURL:            emp.LinkedinURL,
+					InstagramURL:           emp.InstagramURL,
+					FacebookURL:            emp.FacebookURL,
+					AniosEnMercado:         emp.AniosEnMercado,
+					DescripcionRaw:         emp.DescripcionRaw,
+					ScoreLead:              preScore,
+					RazonesScore:           "Descartado automáticamente por pre-calificación (score < 50)",
+					EmailsAdicionales:      emailsJSON,
+					Fuente:                 "google_maps_only",
+					Estado:                 "descartado_auto",
+				}
+				if err := s.leadRepo.Create(discardedLead); err != nil {
+					log.Printf("[LeadScraper] Error guardando lead descartado '%s': %v", emp.NombreEmpresa, err)
+				}
+				emit("lead_skipped", map[string]interface{}{
+					"name": emp.NombreEmpresa, "pre_score": preScore,
+					"reason": "Pre-score < 50, guardado en DB para evitar reprocesamiento",
+				})
+				_ = s.jobRepo.IncrementProcessed(jobID)
+				emit("company_done", map[string]interface{}{
+					"index": i, "total": len(companies), "name": companyName,
+					"score": preScore, "estado": "descartado_auto",
+				})
+				return
+			}
+
+			// Step 3: LinkedIn (solo para leads que pasan el filtro de pre-calificación)
 			linkedin := searchLinkedIn(ctx, emp.NombreEmpresa, emit)
 			if linkedin.LinkedinURL != "" && emp.LinkedinURL == "" {
 				emp.LinkedinURL = linkedin.LinkedinURL
@@ -379,10 +428,17 @@ func (s *leadScraperService) runPipeline(jobID, query, location string, maxResul
 				"email":             lead.Email,
 			}
 
-			emit("lead_saved", leadDetail)
+			// Guardar en DB
+			if err := s.leadRepo.Create(dbLead); err != nil {
+				log.Printf("[LeadScraper] Error guardando lead '%s' (job %s): %v", lead.NombreEmpresa, jobID, err)
+				emit("company_error", map[string]interface{}{
+					"index": i, "name": companyName, "error": "Error guardando en base de datos: " + err.Error(),
+				})
+				_ = s.jobRepo.IncrementProcessed(jobID)
+				return
+			}
 
-			// Guardar en MySQL
-			_ = s.leadRepo.Create(dbLead)
+			emit("lead_saved", leadDetail)
 			_ = s.jobRepo.IncrementProcessed(jobID)
 
 			emit("company_done", map[string]interface{}{
